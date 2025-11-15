@@ -1,0 +1,7 @@
+Django>=5.2.8
+django-tenants>=3.9.0
+django-htmx>=1.26.0
+psycopg2>=2.9.11
+Pillow>=12.0.0
+gunicorn>=23.0.0
+whitenoise>=6.5.0

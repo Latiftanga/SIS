@@ -1,0 +1,7 @@
+django-debug-toolbar
+ipython
+pytest
+pytest-django
+flake8
+black
+Faker
