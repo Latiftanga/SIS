@@ -1,0 +1,23 @@
+<div class="navbar bg-base-100 shadow-sm border-b border-base-300 sticky top-0 z-40">
+    <div class="flex-1">
+        <button class="btn btn-ghost btn-circle" onclick="toggleSidebar()">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" /></svg>
+        </button>
+        <a href="{% url 'dashboard:index' %}" class="btn btn-ghost text-xl text-primary">SmartSIS</a>
+    </div>
+    <div class="flex-none gap-2">
+        <button class="btn btn-ghost btn-circle" onclick="toggleTheme()">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
+        </button>
+        <div class="dropdown dropdown-end">
+            <label tabindex="0" class="btn btn-ghost btn-circle avatar">
+                <div class="w-10 rounded-full bg-primary text-primary-content flex justify-center items-center">
+                    <span>{{ user.get_short_name|slice:":2"|upper }}</span>
+                </div>
+            </label>
+            <ul tabindex="0" class="mt-3 z-[1] p-2 shadow menu menu-sm dropdown-content bg-base-100 rounded-box w-52">
+                <li><a hx-post="{% url 'accounts:logout' %}" class="text-error">Logout</a></li>
+            </ul>
+        </div>
+    </div>
+</div>

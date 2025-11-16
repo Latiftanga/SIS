@@ -1,0 +1,43 @@
+<!-- Note: Filename is signup_form.html (no underscore) to match signup.html include -->
+<form hx-post="{% url 'accounts:signup' %}" hx-target="#signup-container" hx-swap="outerHTML">
+    <h2 class="text-2xl font-bold mb-6">Create Account</h2>
+    
+    {% if signup_form.non_field_errors %}
+    <div role="alert" class="alert alert-error text-xs p-3 mb-4">
+        <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-5 w-5" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2.94V7a2 2 0 00-2-2h-14a2 2 0 00-2 2v10a2 2 0 002 2h14a2 2 0 002-2v-2.06" /></svg>
+        <span>{{ signup_form.non_field_errors.0 }}</span>
+    </div>
+    {% endif %}
+
+    <div class="form-control mb-3">
+        <label class="label"><span class="label-text font-medium">Email</span></label>
+        {{ signup_form.email }}
+        <div class="text-error text-xs mt-1">{{ signup_form.email.errors.0 }}</div>
+    </div>
+    
+    <div class="form-control mb-3">
+        <label class="label"><span class="label-text font-medium">Password</span></label>
+        {{ signup_form.password }}
+    </div>
+    
+    <div class="form-control mb-4">
+        <label class="label"><span class="label-text font-medium">Confirm Password</span></label>
+        {{ signup_form.password_confirm }}
+        <div class="text-error text-xs mt-1">{{ signup_form.password_confirm.errors.0 }}</div>
+    </div>
+
+    <div class="form-control mb-4">
+        <label class="cursor-pointer flex gap-2 items-center">
+            {{ signup_form.terms }} <span class="text-xs">I agree to terms</span>
+        </label>
+        <div class="text-error text-xs">{{ signup_form.terms.errors.0 }}</div>
+    </div>
+
+    <button type="submit" class="btn btn-primary w-full">
+        <span class="loading loading-spinner loading-sm htmx-indicator"></span> Create Account
+    </button>
+</form>
+
+<div class="text-center mt-4 text-sm">
+    Have an account? <a href="{% url 'accounts:login' %}" class="link link-primary font-bold">Sign in</a>
+</div>

@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Auth{% endblock %} | SmartSIS</title>
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.4.19/dist/full.min.css" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    <style>
+        .htmx-indicator{display:none} .htmx-request .htmx-indicator{display:inline-block}
+        .fade-in{animation:fadeIn 0.4s ease-in} @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+    </style>
+    <script>
+        (function(){const t=localStorage.getItem('theme')||(window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');document.documentElement.setAttribute('data-theme',t)})();
+    </script>
+</head>
+<body class="min-h-screen bg-base-200 flex items-center justify-center p-4">
+    <div class="card bg-base-100 shadow-2xl w-full max-w-3xl fade-in">
+        <div class="card-body p-8 md:p-10">
+            <div class="grid md:grid-cols-2 gap-8 md:gap-12">
+                <div class="flex flex-col justify-between">
+                    <div>
+                        <div class="w-14 h-14 bg-primary/10 rounded-xl flex items-center justify-center mb-6">
+                            <svg class="w-7 h-7 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                        </div>
+                        {% block branding %}{% endblock %}
+                    </div>
+                    <div class="pt-8 flex justify-between">
+                        <p class="text-xs opacity-60">&copy; 2024 SmartSIS</p>
+                        <button onclick="toggleTheme()" class="btn btn-ghost btn-sm btn-circle"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg></button>
+                    </div>
+                </div>
+                <div class="md:border-l border-base-300 md:pl-12">
+                    {% block content %}{% endblock %}
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        function toggleTheme(){const h=document.documentElement,c=h.getAttribute('data-theme'),n=c==='dark'?'light':'dark';h.setAttribute('data-theme',n);localStorage.setItem('theme',n)}
+        document.body.addEventListener('htmx:configRequest',e=>e.detail.headers['X-CSRFToken']='{{ csrf_token }}');
+    </script>
+</body>
+</html>

@@ -1,0 +1,11 @@
+{% extends 'accounts/base_auth.html' %}
+
+{% block branding %}
+    {% include 'accounts/partials/_login_branding.html' %}
+{% endblock %}
+
+{% block content %}
+    <div id="login-container">
+        {% include 'accounts/partials/_login_form.html' with form=form %}
+    </div>
+{% endblock %}

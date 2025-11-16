@@ -1,0 +1,35 @@
+<!-- Note: Filename is login_form.html (no underscore) to match login.html include -->
+<form hx-post="{% url 'accounts:login' %}" hx-target="#login-container" hx-swap="outerHTML">
+    <h2 class="text-2xl font-bold mb-6">Sign In</h2>
+    
+    {% if form.non_field_errors %}
+    <div role="alert" class="alert alert-error text-xs p-3 mb-4">
+        <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-5 w-5" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2.94V7a2 2 0 00-2-2h-14a2 2 0 00-2 2v10a2 2 0 002 2h14a2 2 0 002-2v-2.06" /></svg>
+        <span>{{ form.non_field_errors.0 }}</span>
+    </div>
+    {% endif %}
+
+    <div class="form-control mb-3">
+        <label class="label"><span class="label-text font-medium">Email</span></label>
+        {{ form.username }}
+        {% if form.username.errors %}
+        <div class="text-error text-xs mt-1">{{ form.username.errors.0 }}</div>
+        {% endif %}
+    </div>
+    
+    <div class="form-control mb-4">
+        <label class="label"><span class="label-text font-medium">Password</span></label>
+        {{ form.password }}
+        {% if form.password.errors %}
+        <div class="text-error text-xs mt-1">{{ form.password.errors.0 }}</div>
+        {% endif %}
+    </div>
+
+    <button type="submit" class="btn btn-primary w-full">
+        <span class="loading loading-spinner loading-sm htmx-indicator"></span> Sign In
+    </button>
+</form>
+
+<div class="text-center mt-4 text-sm">
+    No account? <a href="{% url 'accounts:signup' %}" class="link link-primary font-bold">Sign up</a>
+</div>

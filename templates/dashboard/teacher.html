@@ -1,0 +1,5 @@
+{% extends request.htmx|yesno:"dashboard/layouts/dashboard_partial.html,dashboard/layouts/dashboard_base.html" %}
+{% block content %}
+    <h1 class="text-3xl font-bold mb-6">Teacher Portal</h1>
+    <div class="alert alert-info">You have upcoming Lessons.</div>
+{% endblock %}
