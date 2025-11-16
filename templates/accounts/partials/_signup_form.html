@@ -17,20 +17,13 @@
     
     <div class="form-control mb-3">
         <label class="label"><span class="label-text font-medium">Password</span></label>
-        {{ signup_form.password }}
+        {{ signup_form.password1 }}
     </div>
     
     <div class="form-control mb-4">
         <label class="label"><span class="label-text font-medium">Confirm Password</span></label>
-        {{ signup_form.password_confirm }}
-        <div class="text-error text-xs mt-1">{{ signup_form.password_confirm.errors.0 }}</div>
-    </div>
-
-    <div class="form-control mb-4">
-        <label class="cursor-pointer flex gap-2 items-center">
-            {{ signup_form.terms }} <span class="text-xs">I agree to terms</span>
-        </label>
-        <div class="text-error text-xs">{{ signup_form.terms.errors.0 }}</div>
+        {{ signup_form.password2 }}
+        <div class="text-error text-xs mt-1">{{ signup_form.password2.errors.0 }}</div>
     </div>
 
     <button type="submit" class="btn btn-primary w-full">

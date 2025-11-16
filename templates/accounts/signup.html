@@ -1,12 +1,10 @@
 {% extends 'accounts/base_auth.html' %}
 
 {% block branding %}
-    <!-- This matches the {% block branding %} in base_auth.html -->
     {% include 'accounts/partials/_signup_branding.html' %}
 {% endblock %}
 
 {% block content %}
-    <!-- This matches the {% block content %} in base_auth.html -->
     <div id="signup-container">
         {% include 'accounts/partials/_signup_form.html' with signup_form=signup_form %}
     </div>

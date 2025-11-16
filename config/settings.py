@@ -15,29 +15,60 @@ SECRET_KEY = os.environ.get(
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get('DEBUG', 'True') == 'True'
 
-ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
+ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1,0.0.0.0,*').split(',')
 
+CSRF_TRUSTED_ORIGINS = [ 'https://*' ]
 
 # Application definition
-INSTALLED_APPS = [
-    'django.contrib.admin',
-    'django.contrib.auth',
+SHARED_APPS = (
+    'django_tenants',  # mandatory
+    'schools', # you must list the app where your tenant model resides in
+
     'django.contrib.contenttypes',
+
+    # everything below here is optional
+    'django.contrib.auth',
     'django.contrib.sessions',
+    'django.contrib.sites',
     'django.contrib.messages',
+    'django.contrib.admin',
     'django.contrib.staticfiles',
 
-    #Third party apps
+     #Third party apps
     'django_htmx',
 
-    #local apps
-    'home.apps.HomeConfig',
-    'accounts.apps.AccountsConfig',
-    'dashboard.apps.DashboardConfig',
-]
+    #Local Shared apps
+    'home',
+    'accounts',
 
+)
+
+TENANT_APPS = (
+    'django.contrib.auth',
+    'django.contrib.sessions',
+    'django.contrib.sites',
+    'django.contrib.messages',
+    'django.contrib.admin',
+    'django.contrib.staticfiles',
+
+    # your tenant-specific apps
+    'home',
+    'accounts',
+    'dashboard',
+)
+
+INSTALLED_APPS = list(SHARED_APPS) + [app for app in TENANT_APPS if app not in SHARED_APPS]
+
+TENANT_MODEL = "schools.School" # app.Model
+
+TENANT_DOMAIN_MODEL = "schools.Domain"  # app.Model
+
+SHOW_PUBLIC_IF_NO_TENANT_FOUND = True
+
+SITE_ID = 1
 
 MIDDLEWARE = [
+    'django_tenants.middleware.main.TenantMainMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -72,7 +103,7 @@ WSGI_APPLICATION = 'config.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',
+        'ENGINE': 'django_tenants.postgresql_backend',
         'HOST': os.environ.get('DB_HOST'),
         'NAME': os.environ.get('DB_NAME'),
         'USER': os.environ.get('DB_USER'),
@@ -80,6 +111,8 @@ DATABASES = {
         'PORT': os.environ.get('DB_PORT', '5432'),
     }
 }
+
+DATABASE_ROUTERS = ('django_tenants.routers.TenantSyncRouter', )
 
 
 # Password validation
