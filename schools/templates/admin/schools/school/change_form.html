@@ -1,0 +1,15 @@
+<!-- schools/templates/admin/schools/school/change_form.html -->
+{% extends "admin/change_form.html" %}
+
+{% block after_field_sets %}
+{{ block.super }}
+
+{% if not original %}
+<div style="background: #f0f9ff; padding: 15px; margin: 20px 0; border-left: 4px solid #2196F3;">
+    <h3 style="margin-top: 0;">Quick Guide</h3>
+    <p><strong>Schema Name:</strong> Must start with a letter, use lowercase letters, numbers, underscores only.</p>
+    <p><strong>Examples:</strong>demo_school, school123</p>
+    <p><strong>Domain:</strong> Full domain (school.host) or simple name (school)</p>
+</div>
+{% endif %}
+{% endblock %}

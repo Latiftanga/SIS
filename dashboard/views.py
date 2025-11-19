@@ -4,12 +4,12 @@ from django.contrib.auth import get_user_model
 
 User = get_user_model()
 
+
 @login_required
 def dashboard(request):
     """
     The main dashboard controller.
-    Renders the appropriate template and context directly at the /dashboard/ URL
-    based on the user's role, without redirecting.
+    Renders the appropriate template based on the user's role.
     """
     user = request.user
 
@@ -31,32 +31,49 @@ def dashboard(request):
 
 
 # --- Helper Functions (Internal) ---
-# These are not views reachable by URL, but internal renderers.
 
 def _admin_dashboard(request):
+    """Admin/School Admin Dashboard"""
+    from teachers.models import Teacher
+    
     context = {
         'total_users': User.objects.count(),
-        'recent_activity': [], # Fetch admin specific data
+        'teacher_count': Teacher.objects.filter(is_active=True).count(),
+        'student_count': 0,  # TODO: Add when Student model exists
+        'class_count': 0,     # TODO: Add when Class model exists
+        'subject_count': 0,   # TODO: Add when Subject model exists
     }
     return render(request, 'dashboard/admin.html', context)
 
+
 def _teacher_dashboard(request):
+    """Teacher Dashboard"""
     context = {
-        'classes': [], # Fetch teacher specific data
+        'my_classes': [],  # TODO: Fetch teacher's classes
+        'recent_activity': [],
     }
     return render(request, 'dashboard/teacher.html', context)
 
+
 def _student_dashboard(request):
+    """Student Dashboard"""
     context = {
-        'assignments': [], # Fetch student specific data
+        'my_classes': [],  # TODO: Fetch student's classes
+        'assignments': [],  # TODO: Fetch assignments
+        'grades': [],       # TODO: Fetch grades
     }
     return render(request, 'dashboard/student.html', context)
 
+
 def _parent_dashboard(request):
+    """Parent Dashboard"""
     context = {
-        'children': [], # Fetch parent specific data
+        'children': [],  # TODO: Fetch parent's children
+        'recent_activity': [],
     }
     return render(request, 'dashboard/parent.html', context)
 
+
 def _generic_dashboard(request):
+    """Generic Dashboard for users without specific roles"""
     return render(request, 'dashboard/user.html')

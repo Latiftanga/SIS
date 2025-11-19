@@ -1,46 +1,160 @@
+<!-- templates/dashboard/layouts/dashboard_base.html -->
 <!DOCTYPE html>
-<html lang="en" data-theme="light">
+<html lang="en" data-theme="{{ school_settings.theme_name|default:'light' }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Dashboard{% endblock %} | SmartSIS</title>
+    <title>{% block title %}Dashboard{% endblock %} | {{ school_settings.short_name|default:'SmartSIS' }}</title>
+    
     <link href="https://cdn.jsdelivr.net/npm/daisyui@4.4.19/dist/full.min.css" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/htmx.org@1.9.10"></script>
-    <style>
-        .htmx-indicator { display: none; }
-        .htmx-request .htmx-indicator { display: inline-block; }
-        #sidebar { transition: width 0.3s ease; }
-        #sidebar.w-20 .sidebar-text, #sidebar.w-20 .sidebar-divider { display: none; }
-        #sidebar.w-20 .menu a { justify-content: center; }
-    </style>
-    <script>
-        (function() {
-            const theme = localStorage.getItem('theme') || 'light';
-            document.documentElement.setAttribute('data-theme', theme);
-        })();
-    </script>
 </head>
-<body class="bg-base-200" hx-boost="true">
-    {% include 'dashboard/includes/_header.html' %}
-    <div class="flex">
-        {% include 'dashboard/includes/_sidebar.html' %}
-        <main id="main-content" class="flex-1 p-4 lg:p-6">
-            {% block content %}{% endblock %}
-        </main>
+<body class="overflow-hidden h-screen bg-base-200" hx-boost="true">
+    
+    <div class="flex h-screen">
+        <!-- Desktop Sidebar -->
+        <aside class="hidden lg:flex flex-col w-64 bg-base-100 border-r border-base-300">
+            <!-- Sidebar Header -->
+            <div class="h-16 flex items-center px-4 border-b border-base-300">
+                <a href="{% url 'dashboard:index' %}" hx-boost="false" class="flex items-center gap-2">
+                    {% if school_settings.logo %}
+                        <img src="{{ school_settings.logo.url }}" alt="Logo" class="h-8 w-auto">
+                    {% else %}
+                        <span class="text-xl font-bold text-primary">{{ school_settings.short_name|default:'SmartSIS' }}</span>
+                    {% endif %}
+                </a>
+            </div>
+            
+            <!-- Sidebar Content (Scrollable) -->
+            <div class="flex-1 overflow-y-auto">
+                {% include 'dashboard/includes/_sidebar.html' %}
+            </div>
+            
+            <!-- Sidebar Footer -->
+            <div class="p-4 border-t border-base-300">
+                <div class="text-xs text-base-content/60 text-center">
+                    {% if school_settings.motto %}
+                        {{ school_settings.motto }}
+                    {% else %}
+                        SmartSIS v1.0.0
+                    {% endif %}
+                </div>
+            </div>
+        </aside>
+        
+        <!-- Main Content Area -->
+        <div class="flex-1 flex flex-col overflow-hidden">
+            <!-- Header -->
+            <header class="h-16 bg-base-100 border-b border-base-300">
+                {% include 'dashboard/includes/_header.html' %}
+            </header>
+            
+            <!-- Main Content (Scrollable) -->
+            <main id="main-content" class="flex-1 overflow-y-auto p-4 lg:p-6">
+                {% include 'partials/messages.html' %}
+                {% block content %}{% endblock %}
+            </main>
+        </div>
     </div>
+    
+    <!-- Mobile Drawer (Outside main flex container) -->
+    <input id="mobile-drawer" type="checkbox" class="hidden" />
+    
+    <div class="lg:hidden fixed inset-0 z-50 pointer-events-none">
+        <!-- Overlay -->
+        <label for="mobile-drawer" class="absolute inset-0 bg-black/50 opacity-0 transition-opacity pointer-events-none peer-checked:opacity-100 peer-checked:pointer-events-auto"></label>
+        
+        <!-- Mobile Sidebar -->
+        <aside class="absolute top-0 left-0 h-full w-64 bg-base-100 transform -translate-x-full transition-transform flex flex-col shadow-xl" id="mobile-sidebar">
+            <!-- Mobile Sidebar Header -->
+            <div class="h-16 flex items-center justify-between px-4 border-b border-base-300">
+                <a href="{% url 'dashboard:index' %}" hx-boost="false" class="flex items-center gap-2">
+                    {% if school_settings.logo %}
+                        <img src="{{ school_settings.logo.url }}" alt="Logo" class="h-8 w-auto">
+                    {% else %}
+                        <span class="text-xl font-bold text-primary">{{ school_settings.short_name|default:'SmartSIS' }}</span>
+                    {% endif %}
+                </a>
+                <label for="mobile-drawer" class="btn btn-ghost btn-sm btn-circle">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </label>
+            </div>
+            
+            <!-- Mobile Sidebar Content -->
+            <div class="flex-1 overflow-y-auto">
+                {% include 'dashboard/includes/_sidebar.html' %}
+            </div>
+            
+            <!-- Mobile Sidebar Footer -->
+            <div class="p-4 border-t border-base-300">
+                <div class="text-xs text-base-content/60 text-center">
+                    {% if school_settings.motto %}
+                        {{ school_settings.motto }}
+                    {% else %}
+                        SmartSIS v1.0.0
+                    {% endif %}
+                </div>
+            </div>
+        </aside>
+    </div>
+    
+    <!-- Loading Indicator -->
+    <div id="loading-indicator" class="htmx-indicator fixed top-20 right-4 z-50">
+        <div class="alert alert-info shadow-lg">
+            <span class="loading loading-spinner"></span>
+            <span>Loading...</span>
+        </div>
+    </div>
+    
+    <style>
+        /* Mobile drawer animations */
+        #mobile-drawer:checked ~ div #mobile-sidebar {
+            transform: translateX(0);
+        }
+        
+        #mobile-drawer:checked ~ div label {
+            pointer-events: auto;
+            opacity: 1;
+        }
+        
+        #mobile-drawer:checked ~ div {
+            pointer-events: auto;
+        }
+    </style>
+    
     <script>
-        function toggleSidebar() {
-            const sb = document.getElementById('sidebar');
-            sb.classList.toggle('w-64'); sb.classList.toggle('w-20');
+        // Theme persistence
+        const themeController = document.querySelector('.theme-controller');
+        if (themeController) {
+            const savedTheme = localStorage.getItem('theme') || '{{ school_settings.theme_name|default:"light" }}';
+            if (savedTheme === 'dark') themeController.checked = true;
+            themeController.addEventListener('change', () => {
+                localStorage.setItem('theme', themeController.checked ? 'dark' : 'light');
+            });
         }
-        function toggleTheme() {
-            const current = document.documentElement.getAttribute('data-theme');
-            const next = current === 'dark' ? 'light' : 'dark';
-            document.documentElement.setAttribute('data-theme', next);
-            localStorage.setItem('theme', next);
-        }
-        document.body.addEventListener('htmx:configRequest', (e) => e.detail.headers['X-CSRFToken'] = '{{ csrf_token }}');
+        
+        // Close mobile drawer when clicking a navigation menu link (not logo)
+        document.addEventListener('click', (e) => {
+            // Only close if clicking a link inside the nav menu, not the header logo
+            if (e.target.closest('#mobile-sidebar nav a')) {
+                const drawer = document.getElementById('mobile-drawer');
+                if (drawer) drawer.checked = false;
+            }
+        });
+        
+        // HTMX config
+        document.body.addEventListener('htmx:configRequest', (e) => {
+            e.detail.headers['X-CSRFToken'] = '{{ csrf_token }}';
+            e.detail.headers['X-Requested-With'] = 'XMLHttpRequest';
+        });
+        
+        // Scroll to top after HTMX swap
+        document.body.addEventListener('htmx:afterSwap', (e) => {
+            if (e.detail.target.id === 'main-content') e.detail.target.scrollTop = 0;
+        });
     </script>
 </body>
 </html>

@@ -1,0 +1,25 @@
+<script>
+    // Theme persistence
+    const themeController = document.querySelector('.theme-controller');
+    if (themeController) {
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        
+        if (savedTheme === 'dark') {
+            themeController.checked = true;
+        }
+        
+        themeController.addEventListener('change', () => {
+            localStorage.setItem('theme', themeController.checked ? 'dark' : 'light');
+        });
+    }
+
+    // HTMX Configuration
+    document.addEventListener('htmx:configRequest', (event) => {
+        event.detail.headers['X-Requested-With'] = 'XMLHttpRequest';
+        // Add CSRF token to all requests
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]');
+        if (csrfToken) {
+            event.detail.headers['X-CSRFToken'] = csrfToken.value;
+        }
+    });
+</script>

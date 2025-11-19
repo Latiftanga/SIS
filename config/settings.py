@@ -22,7 +22,7 @@ CSRF_TRUSTED_ORIGINS = [ 'https://*' ]
 # Application definition
 SHARED_APPS = (
     'django_tenants',  # mandatory
-    'schools', # you must list the app where your tenant model resides in
+    'schools.apps.SchoolsConfig', # you must list the app where your tenant model resides in
 
     'django.contrib.contenttypes',
 
@@ -38,7 +38,6 @@ SHARED_APPS = (
     'django_htmx',
 
     #Local Shared apps
-    'home',
     'accounts',
 
 )
@@ -48,13 +47,13 @@ TENANT_APPS = (
     'django.contrib.sessions',
     'django.contrib.sites',
     'django.contrib.messages',
-    'django.contrib.admin',
     'django.contrib.staticfiles',
 
     # your tenant-specific apps
-    'home',
     'accounts',
     'dashboard',
+    'teachers',
+    'settings',
 )
 
 INSTALLED_APPS = list(SHARED_APPS) + [app for app in TENANT_APPS if app not in SHARED_APPS]
@@ -81,6 +80,7 @@ MIDDLEWARE = [
     'django_htmx.middleware.HtmxMiddleware',#Htmx Middleware
 ]
 
+PUBLIC_SCHEMA_URLCONF = 'config.urls_public'
 ROOT_URLCONF = 'config.urls'
 
 TEMPLATES = [
@@ -128,7 +128,8 @@ AUTH_USER_MODEL = 'accounts.User'
 
 # Authentication Backends
 AUTHENTICATION_BACKENDS = [
-    'django.contrib.auth.backends.ModelBackend',
+    'schools.backends.TenantAwareBackend',  # Our custom backend
+    # 'django.contrib.auth.backends.ModelBackend',  # Remove or comment out the default
 ]
 
 # Auth URLs

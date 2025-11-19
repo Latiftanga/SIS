@@ -1,96 +1,114 @@
-{% extends request.htmx|yesno:"dashobard/layouts/dashboard_partial.html,dashboard/layouts/dashboard_base.html" %}
+<!-- templates/dashboard/admin.html -->
+{% extends request.htmx|yesno:"dashboard/layouts/dashboard_partial.html,dashboard/layouts/dashboard_base.html" %}
 
 {% block content %}
-    <div class="mb-6">
-        <h1 class="text-3xl font-bold text-base-content">Admin Dashboard</h1>
-        <p class="text-base-content/60 mt-1">Overview of school metrics</p>
-    </div>
+<div class="mb-6">
+    <h1 class="text-3xl font-bold text-base-content">Admin Dashboard</h1>
+    <p class="text-base-content/60 mt-1">Overview of school metrics</p>
+</div>
 
-    <!-- Stats Overview -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <!-- Total Users -->
-        <div class="stats shadow-sm bg-base-100 border border-base-300">
-            <div class="stat">
-                <div class="stat-figure text-primary">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
-                    </svg>
-                </div>
-                <div class="stat-title">Total Users</div>
-                <div class="stat-value text-primary">{{ total_users }}</div>
-                <div class="stat-desc">↗️ Active accounts</div>
+<!-- Stats Overview -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+    <!-- Total Users -->
+    <div class="stats shadow-sm bg-base-100 border border-base-300">
+        <div class="stat">
+            <div class="stat-figure text-primary">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                </svg>
             </div>
-        </div>
-
-        <!-- Teachers -->
-        <div class="stats shadow-sm bg-base-100 border border-base-300">
-            <div class="stat">
-                <div class="stat-figure text-secondary">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                    </svg>
-                </div>
-                <div class="stat-title">Teachers</div>
-                <div class="stat-value text-secondary">58</div>
-                <div class="stat-desc">↗️ Staff members</div>
-            </div>
-        </div>
-
-        <!-- Attendance -->
-        <div class="stats shadow-sm bg-base-100 border border-base-300">
-            <div class="stat">
-                <div class="stat-figure text-success">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                </div>
-                <div class="stat-title">System Status</div>
-                <div class="stat-value text-success">98%</div>
-                <div class="stat-desc">Operational</div>
-            </div>
+            <div class="stat-title">Total Users</div>
+            <div class="stat-value text-primary">{{ total_users|default:0 }}</div>
+            <div class="stat-desc">Active accounts</div>
         </div>
     </div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <!-- Main Action Area -->
-        <div class="lg:col-span-2">
-            <div class="card bg-base-100 shadow-sm border border-base-300">
-                <div class="card-body">
-                    <h2 class="card-title mb-4">Quick Actions</h2>
-                    <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
-                        <button class="btn btn-outline">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" /></svg>
-                            Add User
-                        </button>
-                        <button class="btn btn-outline">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>
-                            Class Setup
-                        </button>
+    <!-- Teachers -->
+    <div class="stats shadow-sm bg-base-100 border border-base-300">
+        <div class="stat">
+            <div class="stat-figure text-secondary">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path d="M12 14l9-5-9-5-9 5 9 5z"/>
+                    <path d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"/>
+                </svg>
+            </div>
+            <div class="stat-title">Teachers</div>
+            <div class="stat-value text-secondary">{{ teacher_count|default:0 }}</div>
+            <div class="stat-desc">Staff members</div>
+        </div>
+    </div>
+
+    <!-- Students -->
+    <div class="stats shadow-sm bg-base-100 border border-base-300">
+        <div class="stat">
+            <div class="stat-figure text-accent">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                </svg>
+            </div>
+            <div class="stat-title">Students</div>
+            <div class="stat-value text-accent">{{ student_count|default:0 }}</div>
+            <div class="stat-desc">Enrolled students</div>
+        </div>
+    </div>
+
+    <!-- System Status -->
+    <div class="stats shadow-sm bg-base-100 border border-base-300">
+        <div class="stat">
+            <div class="stat-figure text-success">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+            </div>
+            <div class="stat-title">System Status</div>
+            <div class="stat-value text-success">100%</div>
+            <div class="stat-desc">Operational</div>
+        </div>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <!-- Quick Actions -->
+    <div class="lg:col-span-2">
+        <div class="card bg-base-100 shadow-sm border border-base-300">
+            <div class="card-body">
+                <h2 class="card-title mb-4">Quick Actions</h2>
+                <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+                    <a href="{% url 'teachers:list' %}" class="btn btn-outline">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path d="M12 14l9-5-9-5-9 5 9 5z"/>
+                        </svg>
+                        Teachers
+                    </a>
+                    <button class="btn btn-outline" disabled>
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                        </svg>
+                        Students
+                    </button>
+                    <button class="btn btn-outline" disabled>
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                        </svg>
+                        Classes
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Activity -->
+    <div class="space-y-6">
+        <div class="card bg-base-100 shadow-sm border border-base-300">
+            <div class="card-body">
+                <h2 class="card-title text-lg mb-3">Recent Activity</h2>
+                <div class="space-y-3">
+                    <div class="text-sm text-base-content/60 text-center py-4">
+                        No recent activity
                     </div>
                 </div>
             </div>
         </div>
-
-        <!-- Recent Activity -->
-        <div class="space-y-6">
-            <div class="card bg-base-100 shadow-sm border border-base-300">
-                <div class="card-body">
-                    <h2 class="card-title text-lg mb-3">System Activity</h2>
-                    <div class="space-y-3">
-                        <div class="flex items-start gap-3 p-3 bg-base-200 rounded-lg">
-                            <div class="avatar placeholder">
-                                <div class="bg-neutral text-neutral-content rounded-full w-8">
-                                    <span class="text-xs">SYS</span>
-                                </div>
-                            </div>
-                            <div>
-                                <p class="text-sm font-medium">System Update</p>
-                                <p class="text-xs opacity-60">Dashboard updated successfully</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
     </div>
+</div>
 {% endblock %}

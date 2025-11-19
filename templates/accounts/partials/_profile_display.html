@@ -1,0 +1,56 @@
+<!-- templates/accounts/partials/_profile_display.html -->
+<div class="card bg-base-100 shadow-xl">
+    <div class="card-body">
+        <h2 class="card-title mb-4">Account Information</h2>
+        
+        <div class="space-y-4">
+            <div>
+                <label class="label">
+                    <span class="label-text font-semibold text-sm">Full Name</span>
+                </label>
+                <p class="text-base-content pl-1">{{ current_user.get_full_name }}</p>
+            </div>
+            
+            <div class="divider"></div>
+            
+            <div>
+                <label class="label">
+                    <span class="label-text font-semibold text-sm">Email Address</span>
+                </label>
+                <p class="text-base-content pl-1">{{ current_user.email }}</p>
+            </div>
+            
+            <div class="divider"></div>
+            
+            <div>
+                <label class="label">
+                    <span class="label-text font-semibold text-sm">Role</span>
+                </label>
+                <p class="text-base-content pl-1">{{ current_user.get_user_type }}</p>
+            </div>
+            
+            <div class="divider"></div>
+            
+            <div>
+                <label class="label">
+                    <span class="label-text font-semibold text-sm">Member Since</span>
+                </label>
+                <p class="text-base-content pl-1">{{ current_user.date_joined|date:"F d, Y" }}</p>
+            </div>
+            
+            {% if current_user.get_profile %}
+            <div class="divider"></div>
+            
+            <div>
+                <label class="label">
+                    <span class="label-text font-semibold text-sm">Profile Details</span>
+                </label>
+                {% if current_user.is_teacher and current_user.teacher %}
+                    <p class="text-base-content pl-1">Employee ID: {{ current_user.teacher.employee_id }}</p>
+                    <p class="text-base-content pl-1">Phone: {{ current_user.teacher.phone_number }}</p>
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>

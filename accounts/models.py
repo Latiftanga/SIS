@@ -1,8 +1,9 @@
+# accounts/models.py
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 from django.db import models
 from django.utils import timezone
 
-# --- User Manager (as provided) ---
+
 class UserManager(BaseUserManager):
     """Custom manager for User model with email-based authentication."""
 
@@ -24,9 +25,10 @@ class UserManager(BaseUserManager):
         return self._create_user(email, password, **extra_fields)
 
     def create_superuser(self, email, password=None, **extra_fields):
-        """Create and save a superuser."""
+        """Create and save a superuser (school admin)."""
         extra_fields.setdefault('is_staff', True)
         extra_fields.setdefault('is_superuser', True)
+        extra_fields.setdefault('is_school_admin', True)
 
         if extra_fields.get('is_staff') is not True:
             raise ValueError('Superuser must have is_staff=True')
@@ -35,28 +37,33 @@ class UserManager(BaseUserManager):
 
         return self._create_user(email, password, **extra_fields)
 
-    # --- Role-specific creation methods (as provided) ---
     def create_teacher(self, email, password=None, **extra_fields):
+        """Create a teacher user."""
         extra_fields.setdefault('is_teacher', True)
         return self.create_user(email, password, **extra_fields)
 
     def create_student(self, email, password=None, **extra_fields):
+        """Create a student user."""
         extra_fields.setdefault('is_student', True)
         return self.create_user(email, password, **extra_fields)
 
     def create_parent(self, email, password=None, **extra_fields):
+        """Create a parent user."""
         extra_fields.setdefault('is_parent', True)
         return self.create_user(email, password, **extra_fields)
 
     def create_school_admin(self, email, password=None, **extra_fields):
+        """Create a school admin user."""
         extra_fields.setdefault('is_school_admin', True)
         extra_fields.setdefault('is_staff', True)
         return self.create_user(email, password, **extra_fields)
 
 
-# --- User Model (as provided) ---
 class User(AbstractBaseUser, PermissionsMixin):
-    """Custom user model with email-based authentication and role management."""
+    """
+    Custom user model with email-based authentication and role management.
+    Lives in EACH school's schema (tenant-specific).
+    """
 
     email = models.EmailField(max_length=255, unique=True)
     is_active = models.BooleanField(default=True)
@@ -72,13 +79,31 @@ class User(AbstractBaseUser, PermissionsMixin):
     updated_at = models.DateTimeField(auto_now=True)
     last_login = models.DateTimeField(null=True, blank=True)
 
+    # Fix: Override groups and user_permissions with custom related_name
+    groups = models.ManyToManyField(
+        'auth.Group',
+        verbose_name='groups',
+        blank=True,
+        help_text='The groups this user belongs to.',
+        related_name='school_user_set',
+        related_query_name='school_user',
+    )
+    user_permissions = models.ManyToManyField(
+        'auth.Permission',
+        verbose_name='user permissions',
+        blank=True,
+        help_text='Specific permissions for this user.',
+        related_name='school_user_set',
+        related_query_name='school_user',
+    )
+
     objects = UserManager()
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []
 
     class Meta:
-        verbose_name = 'User'
-        verbose_name_plural = 'Users'
+        verbose_name = 'user'
+        verbose_name_plural = 'users'
         indexes = [
             models.Index(fields=['email']),
             models.Index(fields=['is_teacher', 'is_active']),
@@ -125,6 +150,7 @@ class User(AbstractBaseUser, PermissionsMixin):
         return 'User'
 
     def has_role(self, role):
+        """Check if user has a specific role."""
         role_map = {
             'school_admin': self.is_school_admin,
             'teacher': self.is_teacher,
@@ -135,6 +161,9 @@ class User(AbstractBaseUser, PermissionsMixin):
         }
         return role_map.get(role.lower(), False)
 
+    # Add profile picture field for the sidebar UI
+    avatar = models.ImageField(upload_to='avatars/', null=True, blank=True)
+
     def __str__(self):
         full_name = self.get_full_name()
-        return f"{full_name} ({self.email})" if full_name != self.email else self.email
+        return f"{full_name} ({self.email})" if full_name != self.email.split('@')[0] else self.email

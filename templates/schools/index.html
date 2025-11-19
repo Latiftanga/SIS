@@ -1,0 +1,266 @@
+<!-- templates/schools/index.html -->
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartSIS - School Management System</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.4.19/dist/full.min.css" rel="stylesheet" type="text/css" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <style>
+        .icon-container svg {
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+</head>
+<body class="bg-base-200">
+    
+    <!-- Navbar -->
+    <div class="navbar bg-base-100 shadow-sm border-b border-base-300 sticky top-0 z-40">
+        <div class="flex-1">
+            <a href="/" class="btn btn-ghost text-xl font-bold text-primary">
+                SmartSIS
+            </a>
+        </div>
+        <div class="flex-none gap-2">
+            <a href="/admin/" class="btn btn-ghost btn-sm">
+                Platform Admin
+            </a>
+        </div>
+    </div>
+
+    <!-- Hero Section -->
+    <div class="hero min-h-[60vh] bg-gradient-to-br from-primary/10 to-secondary/10">
+        <div class="hero-content text-center">
+            <div class="max-w-4xl">
+                <h1 class="text-5xl font-bold mb-6">
+                    School Management Made Simple
+                </h1>
+                <p class="text-xl text-base-content/70 mb-8">
+                    SmartSIS is a comprehensive school management system designed specifically for Ghanaian schools.
+                    Manage students, teachers, grades, and more - all in one place.
+                </p>
+                
+                <!-- Stats -->
+                <div class="stats shadow-xl bg-base-100">
+                    <div class="stat">
+                        <div class="stat-figure text-primary">
+                            <div class="icon-container w-8 h-8">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="stat-title">Total Schools</div>
+                        <div class="stat-value text-primary">{{ total_schools }}</div>
+                        <div class="stat-desc">Registered on platform</div>
+                    </div>
+                    
+                    <div class="stat">
+                        <div class="stat-figure text-secondary">
+                            <div class="icon-container w-8 h-8">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="stat-title">Active Schools</div>
+                        <div class="stat-value text-secondary">{{ active_schools }}</div>
+                        <div class="stat-desc">With configured domains</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Features Section -->
+    <div class="container mx-auto px-4 py-16">
+        <h2 class="text-3xl font-bold text-center mb-12">Key Features</h2>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- Feature 1 -->
+            <div class="card bg-base-100 shadow-xl">
+                <div class="card-body">
+                    <div class="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-4 flex-shrink-0">
+                        <div class="icon-container w-6 h-6">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="text-primary">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l9-5-9-5-9 5 9 5z"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <h3 class="card-title">Teacher Management</h3>
+                    <p class="text-base-content/70">Efficiently manage teacher profiles, assignments, and schedules.</p>
+                </div>
+            </div>
+            
+            <!-- Feature 2 -->
+            <div class="card bg-base-100 shadow-xl">
+                <div class="card-body">
+                    <div class="w-12 h-12 bg-secondary/10 rounded-lg flex items-center justify-center mb-4 flex-shrink-0">
+                        <div class="icon-container w-6 h-6">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="text-secondary">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                            </svg>
+                        </div>
+                    </div>
+                    <h3 class="card-title">Student Records</h3>
+                    <p class="text-base-content/70">Comprehensive student information and academic tracking.</p>
+                </div>
+            </div>
+            
+            <!-- Feature 3 -->
+            <div class="card bg-base-100 shadow-xl">
+                <div class="card-body">
+                    <div class="w-12 h-12 bg-accent/10 rounded-lg flex items-center justify-center mb-4 flex-shrink-0">
+                        <div class="icon-container w-6 h-6">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="text-accent">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                            </svg>
+                        </div>
+                    </div>
+                    <h3 class="card-title">Grades & Reports</h3>
+                    <p class="text-base-content/70">Easy grade entry and automated report card generation.</p>
+                </div>
+            </div>
+            
+            <!-- Feature 4 -->
+            <div class="card bg-base-100 shadow-xl">
+                <div class="card-body">
+                    <div class="w-12 h-12 bg-info/10 rounded-lg flex items-center justify-center mb-4 flex-shrink-0">
+                        <div class="icon-container w-6 h-6">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="text-info">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                        </div>
+                    </div>
+                    <h3 class="card-title">Attendance Tracking</h3>
+                    <p class="text-base-content/70">Real-time attendance monitoring for students and staff.</p>
+                </div>
+            </div>
+            
+            <!-- Feature 5 -->
+            <div class="card bg-base-100 shadow-xl">
+                <div class="card-body">
+                    <div class="w-12 h-12 bg-success/10 rounded-lg flex items-center justify-center mb-4 flex-shrink-0">
+                        <div class="icon-container w-6 h-6">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="text-success">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                            </svg>
+                        </div>
+                    </div>
+                    <h3 class="card-title">Parent Communication</h3>
+                    <p class="text-base-content/70">Keep parents informed with SMS and email notifications.</p>
+                </div>
+            </div>
+            
+            <!-- Feature 6 -->
+            <div class="card bg-base-100 shadow-xl">
+                <div class="card-body">
+                    <div class="w-12 h-12 bg-warning/10 rounded-lg flex items-center justify-center mb-4 flex-shrink-0">
+                        <div class="icon-container w-6 h-6">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="text-warning">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                            </svg>
+                        </div>
+                    </div>
+                    <h3 class="card-title">Multi-Tenant</h3>
+                    <p class="text-base-content/70">Complete data isolation between schools for security.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Schools List Section -->
+    {% if schools %}
+    <div class="bg-base-100 py-16">
+        <div class="container mx-auto px-4">
+            <h2 class="text-3xl font-bold text-center mb-12">Our Partner Schools</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {% for school in schools %}
+                <div class="card bg-base-200 shadow-xl hover:shadow-2xl transition-shadow">
+                    <div class="card-body">
+                        <h3 class="card-title">{{ school.name }}</h3>
+                        <div class="space-y-2 text-sm">
+                            <div class="flex items-center gap-2">
+                                <div class="icon-container w-4 h-4 flex-shrink-0">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="text-primary">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
+                                    </svg>
+                                </div>
+                                <span class="text-base-content/60">Schema: {{ school.schema_name }}</span>
+                            </div>
+                            {% with school.domains.first as domain %}
+                            {% if domain %}
+                            <div class="flex items-center gap-2">
+                                <div class="icon-container w-4 h-4 flex-shrink-0">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="text-secondary">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                                    </svg>
+                                </div>
+                                <a href="http://{{ domain.domain }}" target="_blank" class="link link-secondary truncate">
+                                    {{ domain.domain }}
+                                </a>
+                            </div>
+                            {% endif %}
+                            {% endwith %}
+                            <div class="flex items-center gap-2">
+                                <div class="icon-container w-4 h-4 flex-shrink-0">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="text-accent">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                    </svg>
+                                </div>
+                                <span class="text-base-content/60">Joined: {{ school.created_on|date:"M d, Y" }}</span>
+                            </div>
+                        </div>
+                        
+                        {% with school.domains.first as domain %}
+                        {% if domain %}
+                        <div class="card-actions justify-end mt-4">
+                            <a href="http://{{ domain.domain }}/accounts/login/" target="_blank" class="btn btn-primary btn-sm">
+                                Visit Portal
+                                <div class="icon-container w-4 h-4">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                                    </svg>
+                                </div>
+                            </a>
+                        </div>
+                        {% endif %}
+                        {% endwith %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            
+            {% if total_schools > 6 %}
+            <div class="text-center mt-8">
+                <p class="text-base-content/60">
+                    Showing 6 of {{ total_schools }} schools
+                </p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Footer -->
+    <footer class="footer footer-center p-10 bg-base-200 text-base-content">
+        <div>
+            <div class="font-bold text-2xl mb-4">SmartSIS</div>
+            <p class="max-w-md">
+                Modern school management system designed for Ghanaian schools.
+                <br/>Built with Django, HTMX, and DaisyUI.
+            </p>
+            <p class="text-sm text-base-content/60 mt-4">
+                &copy; {% now "Y" %} SmartSIS. All rights reserved.
+            </p>
+        </div>
+    </footer>
+
+</body>
+</html>
