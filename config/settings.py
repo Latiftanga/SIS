@@ -53,7 +53,7 @@ TENANT_APPS = (
     'accounts',
     'dashboard',
     'teachers',
-    'settings',
+    'core',  # Core app with settings model
 )
 
 INSTALLED_APPS = list(SHARED_APPS) + [app for app in TENANT_APPS if app not in SHARED_APPS]
@@ -76,8 +76,11 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 
-    #Third party middleware
-    'django_htmx.middleware.HtmxMiddleware',#Htmx Middleware
+    # Custom middleware
+    'accounts.middleware.ForcePasswordChangeMiddleware',  # Force password change for new users
+
+    # Third party middleware
+    'django_htmx.middleware.HtmxMiddleware',  # Htmx Middleware
 ]
 
 PUBLIC_SCHEMA_URLCONF = 'config.urls_public'
@@ -93,6 +96,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'core.context_processors.school_settings',  # School settings context
             ],
         },
     },
@@ -189,8 +193,6 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
 STATIC_URL = 'static/'
-STATIC_ROOT = BASE_DIR / 'staticfiles'
-# --- ADDED: Static root for production 'collectstatic' ---
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 

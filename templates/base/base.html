@@ -5,24 +5,33 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}{{ school_settings.short_name|default:'SmartSIS' }}{% endblock %}</title>
-    
+
     <link href="https://cdn.jsdelivr.net/npm/daisyui@4.4.19/dist/full.min.css" rel="stylesheet" type="text/css" />
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/htmx.org@1.9.10"></script>
-    
+
     {% include 'includes/styles.html' %}
     {% block extra_css %}{% endblock %}
 </head>
-<body class="bg-base-200">
-    
-    {% include 'partials/navbar.html' %}
+<body class="bg-base-200 overflow-hidden h-screen flex flex-col">
 
-    <div class="flex">
+    <!-- Fixed Navbar (Modern Role-Based) -->
+    <header class="h-16 bg-base-100 border-b border-base-300">
+        {% load navigation_tags %}
+        {% render_navbar %}
+    </header>
+
+    <!-- Main Container with Sidebar and Content -->
+    <div class="flex flex-1 overflow-hidden">
+        <!-- Fixed Sidebar (Modern Role-Based) -->
         {% block sidebar %}
-            {% include 'partials/sidebar.html' %}
+            <aside class="hidden lg:flex flex-col w-64 bg-base-100 border-r border-base-300 overflow-y-auto">
+                {% render_sidebar %}
+            </aside>
         {% endblock %}
 
-        <main class="flex-1 p-4 lg:p-6">
+        <!-- Scrollable Main Content -->
+        <main class="flex-1 overflow-y-auto p-4 lg:p-6">
             {% include 'partials/messages.html' %}
             {% block content %}{% endblock %}
         </main>

@@ -1,23 +1,211 @@
-<!-- templates/core/settings.html -->
-{% extends 'base/base.html' %}
+{% extends 'dashboard/layouts/dashboard_base.html' %}
 
-{% block title %}Settings - {{ block.super }}{% endblock %}
+{% block title %}School Settings{% endblock %}
 
 {% block content %}
-<div class="max-w-4xl">
-    <h1 class="text-3xl font-bold mb-6">Settings</h1>
-    
-    <div class="card bg-base-100 shadow-xl">
-        <div class="card-body">
-            <h2 class="card-title">School Settings</h2>
-            <p class="text-base-content/60">Configure your school's information and preferences</p>
-            
-            <div class="divider"></div>
-            
-            <p class="text-center text-base-content/60 py-8">
-                Settings configuration coming soon...
-            </p>
+<div class="max-w-6xl mx-auto">
+    <!-- Page Header -->
+    <div class="mb-8">
+        <div class="flex items-center justify-between">
+            <div>
+                <h1 class="text-3xl font-bold text-base-content">School Settings</h1>
+                <p class="text-base-content/60 mt-2">Manage your school's branding and configuration</p>
+            </div>
+            <div class="badge badge-primary badge-lg">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                </svg>
+                Admin Only
+            </div>
         </div>
     </div>
+
+    <form method="post" enctype="multipart/form-data" class="space-y-6">
+        {% csrf_token %}
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Left Column - Main Settings -->
+            <div class="lg:col-span-2 space-y-6">
+                <!-- School Information Card -->
+                <div class="card bg-base-100 shadow-xl">
+                    <div class="card-body">
+                        <h2 class="card-title text-xl flex items-center gap-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                            </svg>
+                            School Information
+                        </h2>
+
+                        <div class="divider"></div>
+
+                        <!-- School Name (Read-only from tenant) -->
+                        <div class="bg-base-200/50 p-4 rounded-lg border-l-4 border-primary">
+                            <div class="flex items-start justify-between">
+                                <div class="flex-1">
+                                    <label class="text-xs font-semibold text-base-content/60 uppercase tracking-wide mb-2 block">
+                                        Official School Name
+                                    </label>
+                                    <p class="text-2xl font-bold text-base-content">{{ school.name }}</p>
+                                    <p class="text-sm text-base-content/60 mt-1">This is your school's official registered name</p>
+                                </div>
+                                <div class="badge badge-info gap-2">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                                    </svg>
+                                    Read-only
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- School Motto -->
+                        <div class="form-control w-full mt-4">
+                            <label class="label">
+                                <span class="label-text text-sm font-semibold flex items-center gap-2">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
+                                    </svg>
+                                    School Motto
+                                </span>
+                            </label>
+                            <input type="text"
+                                   name="motto"
+                                   value="{{ settings.motto }}"
+                                   placeholder="e.g., Excellence in Education"
+                                   maxlength="100"
+                                   class="input input-bordered input-sm w-full" />
+                            <label class="label">
+                                <span class="label-text-alt text-xs">Displayed in the sidebar footer</span>
+                                <span class="label-text-alt text-xs">{{ settings.motto|length }}/100</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Theme Settings Card -->
+                <div class="card bg-base-100 shadow-xl">
+                    <div class="card-body">
+                        <h2 class="card-title text-xl flex items-center gap-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
+                            </svg>
+                            Appearance & Theme
+                        </h2>
+
+                        <div class="divider"></div>
+
+                        <div class="form-control w-full">
+                            <label class="label">
+                                <span class="label-text text-sm font-semibold">Color Theme</span>
+                            </label>
+                            <select name="theme_name" class="select select-bordered select-sm w-full">
+                                <option value="light" {% if settings.theme_name == 'light' %}selected{% endif %}>
+                                    ☀️ Light - Clean and bright
+                                </option>
+                                <option value="dark" {% if settings.theme_name == 'dark' %}selected{% endif %}>
+                                    🌙 Dark - Easy on the eyes
+                                </option>
+                                <option value="cupcake" {% if settings.theme_name == 'cupcake' %}selected{% endif %}>
+                                    🧁 Cupcake - Sweet and playful
+                                </option>
+                                <option value="emerald" {% if settings.theme_name == 'emerald' %}selected{% endif %}>
+                                    💚 Emerald - Fresh and modern
+                                </option>
+                                <option value="corporate" {% if settings.theme_name == 'corporate' %}selected{% endif %}>
+                                    💼 Corporate - Professional look
+                                </option>
+                                <option value="forest" {% if settings.theme_name == 'forest' %}selected{% endif %}>
+                                    🌲 Forest - Natural and calm
+                                </option>
+                                <option value="luxury" {% if settings.theme_name == 'luxury' %}selected{% endif %}>
+                                    💎 Luxury - Elegant and premium
+                                </option>
+                            </select>
+                            <label class="label">
+                                <span class="label-text-alt text-xs">Choose a DaisyUI theme for your school's interface</span>
+                            </label>
+                        </div>
+
+                        <!-- Theme Preview -->
+                        <div class="alert alert-info mt-4">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <span class="text-sm">Changes will take effect immediately after saving</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column - Logo Upload -->
+            <div class="lg:col-span-1">
+                <div class="card bg-base-100 shadow-xl sticky top-6">
+                    <div class="card-body">
+                        <h2 class="card-title text-xl flex items-center gap-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
+                            School Logo
+                        </h2>
+
+                        <div class="divider"></div>
+
+                        <!-- Current Logo Preview -->
+                        <div class="flex flex-col items-center gap-4">
+                            {% if settings.logo %}
+                            <div class="w-full aspect-square bg-base-200 rounded-lg flex items-center justify-center p-6 border-2 border-base-300">
+                                <img src="{{ settings.logo.url }}"
+                                     alt="School Logo"
+                                     class="max-w-full max-h-full object-contain" />
+                            </div>
+                            <p class="text-sm text-base-content/60 text-center">Current logo</p>
+                            {% else %}
+                            <div class="w-full aspect-square bg-base-200 rounded-lg flex flex-col items-center justify-center p-6 border-2 border-dashed border-base-300">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-20 w-20 text-base-content/20 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                </svg>
+                                <p class="text-sm text-base-content/40">No logo uploaded</p>
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Upload Input -->
+                        <div class="form-control w-full mt-4">
+                            <label class="label">
+                                <span class="label-text text-sm font-semibold">Upload New Logo</span>
+                            </label>
+                            <input type="file"
+                                   name="logo"
+                                   accept="image/png,image/jpeg,image/jpg"
+                                   class="file-input file-input-bordered file-input-primary file-input-sm w-full" />
+                            <label class="label">
+                                <span class="label-text-alt text-xs">PNG or JPG, max 2MB</span>
+                            </label>
+                        </div>
+
+                        <div class="alert alert-warning mt-4">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <span class="text-xs">Logo appears in the sidebar</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Submit Button -->
+        <div class="card bg-base-100 shadow-xl">
+            <div class="card-body">
+                <div class="flex items-center justify-end">
+                    <button type="submit" class="btn btn-primary gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                        </svg>
+                        Save Changes
+                    </button>
+                </div>
+            </div>
+        </div>
+    </form>
 </div>
 {% endblock %}

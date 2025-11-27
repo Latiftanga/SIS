@@ -1,0 +1,147 @@
+{% extends 'dashboard/layouts/dashboard_base.html' %}
+
+{% block title %}Teachers{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Header -->
+    <div class="flex justify-between items-center relative" style="z-index: 100;">
+        <div>
+            <h1 class="text-3xl font-bold text-base-content">Teachers</h1>
+            <p class="text-base-content/60 mt-1">Manage teaching staff</p>
+        </div>
+        <div class="flex gap-2">
+            <!-- Bulk Import Button -->
+            <a href="{% url 'teachers:bulk_import' %}"
+               class="btn btn-outline btn-sm relative"
+               style="z-index: 101;">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                </svg>
+                Bulk Import
+            </a>
+            <!-- Add Teacher Button -->
+            <a href="{% url 'teachers:create' %}"
+               class="btn btn-primary btn-sm relative"
+               style="z-index: 101;">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                </svg>
+                Add Teacher
+            </a>
+        </div>
+    </div>
+
+    <!-- Search and Filters -->
+    <div class="card bg-base-100 shadow-xl">
+        <div class="card-body">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <!-- Search -->
+                <div class="form-control md:col-span-2">
+                    <input type="text"
+                           id="search-input"
+                           name="search"
+                           placeholder="Search by name or employee ID..."
+                           class="input input-bordered input-sm w-full"
+                           hx-get="{% url 'teachers:list' %}"
+                           hx-trigger="keyup changed delay:500ms"
+                           hx-target="#teachers-table"
+                           hx-include="[name='status'], [name='gender']"
+                           value="{{ search }}" />
+                </div>
+
+                <!-- Status Filter -->
+                <div class="form-control">
+                    <select name="status"
+                            id="status-filter"
+                            class="select select-bordered select-sm w-full"
+                            hx-get="{% url 'teachers:list' %}"
+                            hx-trigger="change"
+                            hx-target="#teachers-table"
+                            hx-include="[name='search'], [name='gender']">
+                        <option value="">All Status</option>
+                        <option value="active" {% if status == 'active' %}selected{% endif %}>Active</option>
+                        <option value="inactive" {% if status == 'inactive' %}selected{% endif %}>Inactive</option>
+                    </select>
+                </div>
+
+                <!-- Gender Filter -->
+                <div class="form-control">
+                    <select name="gender"
+                            id="gender-filter"
+                            class="select select-bordered select-sm w-full"
+                            hx-get="{% url 'teachers:list' %}"
+                            hx-trigger="change"
+                            hx-target="#teachers-table"
+                            hx-include="[name='search'], [name='status']">
+                        <option value="">All Genders</option>
+                        <option value="Male" {% if gender == 'Male' %}selected{% endif %}>Male</option>
+                        <option value="Female" {% if gender == 'Female' %}selected{% endif %}>Female</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Teachers Table -->
+    <div class="card bg-base-100 shadow-xl">
+        <div class="card-body">
+            <div id="teachers-table">
+                {% include 'teachers/partials/teacher_rows.html' %}
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Function to show success toast
+function showSuccessToast(message) {
+    // Create toast container if it doesn't exist
+    let toastContainer = document.getElementById('toast-container');
+    if (!toastContainer) {
+        toastContainer = document.createElement('div');
+        toastContainer.id = 'toast-container';
+        toastContainer.className = 'toast toast-top toast-end';
+        document.body.appendChild(toastContainer);
+    }
+
+    // Create toast alert
+    const toast = document.createElement('div');
+    toast.className = 'alert alert-success';
+    toast.innerHTML = `
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 shrink-0 stroke-current" fill="none" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        <span>${message}</span>
+    `;
+
+    toastContainer.appendChild(toast);
+
+    // Auto-remove after 4 seconds
+    setTimeout(function() {
+        toast.style.transition = 'opacity 0.3s';
+        toast.style.opacity = '0';
+        setTimeout(function() {
+            toast.remove();
+        }, 300);
+    }, 4000);
+}
+
+// Handle teacher deleted event
+document.body.addEventListener('teacherDeleted', function() {
+    console.log('Teacher deleted event triggered');
+
+    // Show success message
+    showSuccessToast('Teacher deleted successfully!');
+
+    // Refresh the entire list
+    htmx.ajax('GET', '{% url 'teachers:list' %}', {
+        target: '#teachers-table',
+        swap: 'innerHTML'
+    });
+});
+</script>
+{% endblock %}

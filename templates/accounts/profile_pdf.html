@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile - {{ user.get_full_name }}</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 2cm;
+        }
+
+        body {
+            font-family: 'Helvetica', 'Arial', sans-serif;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 3px solid #2563eb;
+        }
+
+        .header h1 {
+            margin: 0;
+            color: #1e40af;
+            font-size: 28px;
+        }
+
+        .header p {
+            margin: 5px 0;
+            color: #6b7280;
+            font-size: 14px;
+        }
+
+        .section {
+            margin-bottom: 25px;
+        }
+
+        .section-title {
+            background-color: #eff6ff;
+            color: #1e40af;
+            padding: 8px 12px;
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            border-left: 4px solid #2563eb;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .info-item {
+            margin-bottom: 12px;
+        }
+
+        .info-label {
+            font-weight: bold;
+            color: #4b5563;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .info-value {
+            color: #1f2937;
+            font-size: 14px;
+            margin-top: 3px;
+        }
+
+        .footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #e5e7eb;
+            text-align: center;
+            font-size: 11px;
+            color: #9ca3af;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            background-color: #dbeafe;
+            color: #1e40af;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>{{ user.get_full_name }}</h1>
+        <p><span class="badge">{{ user.get_user_type }}</span></p>
+        <p>{{ user.email }}</p>
+    </div>
+
+    <!-- Personal Information -->
+    <div class="section">
+        <div class="section-title">Personal Information</div>
+        <div class="info-grid">
+            <div class="info-item">
+                <div class="info-label">Full Name</div>
+                <div class="info-value">{{ user.get_full_name }}</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Email Address</div>
+                <div class="info-value">{{ user.email }}</div>
+            </div>
+
+            {% if is_teacher %}
+            <div class="info-item">
+                <div class="info-label">First Name</div>
+                <div class="info-value">{{ profile.first_name }}</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Last Name</div>
+                <div class="info-value">{{ profile.last_name }}</div>
+            </div>
+            {% if profile.other_names %}
+            <div class="info-item">
+                <div class="info-label">Other Names</div>
+                <div class="info-value">{{ profile.other_names }}</div>
+            </div>
+            {% endif %}
+            <div class="info-item">
+                <div class="info-label">Gender</div>
+                <div class="info-value">{{ profile.gender }}</div>
+            </div>
+            {% if profile.date_of_birth %}
+            <div class="info-item">
+                <div class="info-label">Date of Birth</div>
+                <div class="info-value">{{ profile.date_of_birth|date:"F d, Y" }}</div>
+            </div>
+            {% endif %}
+            {% endif %}
+        </div>
+    </div>
+
+    {% if is_teacher %}
+    <!-- Contact Information -->
+    <div class="section">
+        <div class="section-title">Contact Information</div>
+        <div class="info-grid">
+            <div class="info-item">
+                <div class="info-label">Phone Number</div>
+                <div class="info-value">{{ profile.phone_number }}</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Email</div>
+                <div class="info-value">{{ profile.email }}</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Employment Information -->
+    <div class="section">
+        <div class="section-title">Employment Information</div>
+        <div class="info-grid">
+            <div class="info-item">
+                <div class="info-label">Employee ID</div>
+                <div class="info-value">{{ profile.employee_id }}</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Date Joined</div>
+                <div class="info-value">{{ profile.date_joined|date:"F d, Y" }}</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Status</div>
+                <div class="info-value">{% if profile.is_active %}Active{% else %}Inactive{% endif %}</div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Account Information -->
+    <div class="section">
+        <div class="section-title">Account Information</div>
+        <div class="info-grid">
+            <div class="info-item">
+                <div class="info-label">User Type</div>
+                <div class="info-value">{{ user.get_user_type }}</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Account Created</div>
+                <div class="info-value">{{ user.date_joined|date:"F d, Y" }}</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Account Status</div>
+                <div class="info-value">{% if user.is_active %}Active{% else %}Inactive{% endif %}</div>
+            </div>
+            {% if user.last_login %}
+            <div class="info-item">
+                <div class="info-label">Last Login</div>
+                <div class="info-value">{{ user.last_login|date:"F d, Y H:i" }}</div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>This document was generated on {{ "now"|date:"F d, Y \a\t H:i" }}</p>
+        <p>SmartSIS - School Information System</p>
+    </div>
+</body>
+</html>

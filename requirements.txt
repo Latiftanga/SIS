@@ -12,3 +12,7 @@ openpyxl>=3.1.5
 xlrd>=2.0.2
 pandas>=2.3.3
 
+#PDF generation
+weasyprint==62.0
+
+

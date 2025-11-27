@@ -1,0 +1,145 @@
+{% extends 'dashboard/layouts/dashboard_base.html' %}
+
+{% block title %}Bulk Import Teachers{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+    <!-- Header -->
+    <div class="mb-6">
+        <div class="flex items-center justify-between">
+            <div>
+                <h1 class="text-2xl font-bold">Bulk Import Teachers</h1>
+                <p class="text-base-content/60 text-sm mt-1">Upload Excel or CSV file to import multiple teachers at once</p>
+            </div>
+            <a href="{% url 'teachers:list' %}" class="btn btn-ghost btn-sm">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+                Cancel
+            </a>
+        </div>
+    </div>
+
+    <!-- Download Template Section -->
+    <div class="card bg-base-100 shadow-sm mb-6">
+        <div class="card-body">
+            <h2 class="card-title text-base">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-info" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10" />
+                </svg>
+                Download Template
+            </h2>
+            <p class="text-sm text-base-content/70 mb-4">
+                Download a sample template file to see the expected format. Fill in your teacher data and upload the file below.
+            </p>
+            <div class="flex gap-2">
+                <button type="button"
+                        onclick="downloadTemplate('xlsx')"
+                        class="btn btn-sm btn-outline btn-success">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    Excel Template (.xlsx)
+                </button>
+                <button type="button"
+                        onclick="downloadTemplate('csv')"
+                        class="btn btn-sm btn-outline btn-info">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    CSV Template (.csv)
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Upload Form -->
+    <div class="card bg-base-100 shadow-sm">
+        <div class="card-body">
+            <h2 class="card-title text-base">Upload File</h2>
+
+            <form method="post" enctype="multipart/form-data" class="space-y-4">
+                {% csrf_token %}
+
+                {% if form.non_field_errors %}
+                <div class="alert alert-error text-sm">
+                    {{ form.non_field_errors.0 }}
+                </div>
+                {% endif %}
+
+                <!-- File Upload -->
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text font-semibold text-xs">Select File</span>
+                    </label>
+                    {{ form.file }}
+                    {% if form.file.errors %}
+                    <div class="label">
+                        <span class="label-text-alt text-error text-xs">{{ form.file.errors.0 }}</span>
+                    </div>
+                    {% endif %}
+                    {% if form.file.help_text %}
+                    <div class="label">
+                        <span class="label-text-alt text-xs">{{ form.file.help_text }}</span>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Create User Accounts -->
+                <div class="form-control">
+                    <label class="label cursor-pointer justify-start gap-3 py-2">
+                        {{ form.create_user_accounts }}
+                        <div>
+                            <span class="label-text font-medium text-sm">{{ form.create_user_accounts.label }}</span>
+                            <p class="text-xs text-base-content/60 mt-0.5">{{ form.create_user_accounts.help_text }}</p>
+                        </div>
+                    </label>
+                </div>
+
+                <!-- Info Alert -->
+                <div class="alert alert-info text-xs py-3">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-current shrink-0 w-5 h-5">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    <div class="space-y-1">
+                        <p class="font-semibold">Important Notes:</p>
+                        <ul class="list-disc list-inside space-y-0.5">
+                            <li>File must be Excel (.xlsx, .xls) or CSV (.csv) format</li>
+                            <li>Maximum file size: 5MB</li>
+                            <li>Email addresses and employee IDs must be unique</li>
+                            <li>Dates should be in YYYY-MM-DD format</li>
+                            <li>You'll preview the data before final import</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="card-actions justify-end">
+                    <a href="{% url 'teachers:list' %}" class="btn btn-ghost btn-sm">Cancel</a>
+                    <button type="submit" class="btn btn-primary btn-sm">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        Upload and Preview
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+function downloadTemplate(format) {
+    // Create a temporary iframe for download
+    const iframe = document.createElement('iframe');
+    iframe.style.display = 'none';
+    iframe.src = "{% url 'teachers:download_template' %}?format=" + format;
+    document.body.appendChild(iframe);
+
+    // Remove iframe after download starts
+    setTimeout(function() {
+        document.body.removeChild(iframe);
+    }, 1000);
+}
+</script>
+{% endblock %}

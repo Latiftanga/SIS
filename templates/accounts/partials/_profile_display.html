@@ -2,53 +2,99 @@
 <div class="card bg-base-100 shadow-xl">
     <div class="card-body">
         <h2 class="card-title mb-4">Account Information</h2>
-        
-        <div class="space-y-4">
+
+        <div class="space-y-3">
             <div>
-                <label class="label">
-                    <span class="label-text font-semibold text-sm">Full Name</span>
+                <label class="label py-1">
+                    <span class="label-text font-semibold text-xs">Full Name</span>
                 </label>
-                <p class="text-base-content pl-1">{{ current_user.get_full_name }}</p>
+                <p class="text-base-content pl-1 text-sm">{{ current_user.get_full_name }}</p>
             </div>
-            
-            <div class="divider"></div>
-            
+
+            <div class="divider my-1"></div>
+
             <div>
-                <label class="label">
-                    <span class="label-text font-semibold text-sm">Email Address</span>
+                <label class="label py-1">
+                    <span class="label-text font-semibold text-xs">Email Address</span>
                 </label>
-                <p class="text-base-content pl-1">{{ current_user.email }}</p>
+                <p class="text-base-content pl-1 text-sm">{{ current_user.email }}</p>
             </div>
-            
-            <div class="divider"></div>
-            
+
+            <div class="divider my-1"></div>
+
             <div>
-                <label class="label">
-                    <span class="label-text font-semibold text-sm">Role</span>
+                <label class="label py-1">
+                    <span class="label-text font-semibold text-xs">Role</span>
                 </label>
-                <p class="text-base-content pl-1">{{ current_user.get_user_type }}</p>
+                <p class="text-base-content pl-1 text-sm">{{ current_user.get_user_type }}</p>
             </div>
-            
-            <div class="divider"></div>
-            
+
+            {% if current_user.is_teacher and current_user.teacher %}
+            <div class="divider my-1"></div>
+
             <div>
-                <label class="label">
-                    <span class="label-text font-semibold text-sm">Member Since</span>
+                <label class="label py-1">
+                    <span class="label-text font-semibold text-xs">Employee ID</span>
                 </label>
-                <p class="text-base-content pl-1">{{ current_user.date_joined|date:"F d, Y" }}</p>
+                <p class="text-base-content pl-1 text-sm">{{ current_user.teacher.employee_id }}</p>
             </div>
-            
-            {% if current_user.get_profile %}
-            <div class="divider"></div>
-            
+
+            <div class="divider my-1"></div>
+
             <div>
-                <label class="label">
-                    <span class="label-text font-semibold text-sm">Profile Details</span>
+                <label class="label py-1">
+                    <span class="label-text font-semibold text-xs">Phone Number</span>
                 </label>
-                {% if current_user.is_teacher and current_user.teacher %}
-                    <p class="text-base-content pl-1">Employee ID: {{ current_user.teacher.employee_id }}</p>
-                    <p class="text-base-content pl-1">Phone: {{ current_user.teacher.phone_number }}</p>
-                {% endif %}
+                <p class="text-base-content pl-1 text-sm">{{ current_user.teacher.phone_number }}</p>
+            </div>
+
+            {% if current_user.teacher.other_names %}
+            <div class="divider my-1"></div>
+
+            <div>
+                <label class="label py-1">
+                    <span class="label-text font-semibold text-xs">Other Names</span>
+                </label>
+                <p class="text-base-content pl-1 text-sm">{{ current_user.teacher.other_names }}</p>
+            </div>
+            {% endif %}
+
+            <div class="divider my-1"></div>
+
+            <div>
+                <label class="label py-1">
+                    <span class="label-text font-semibold text-xs">Gender</span>
+                </label>
+                <p class="text-base-content pl-1 text-sm">{{ current_user.teacher.gender }}</p>
+            </div>
+
+            {% if current_user.teacher.date_of_birth %}
+            <div class="divider my-1"></div>
+
+            <div>
+                <label class="label py-1">
+                    <span class="label-text font-semibold text-xs">Date of Birth</span>
+                </label>
+                <p class="text-base-content pl-1 text-sm">{{ current_user.teacher.date_of_birth|date:"F d, Y" }}</p>
+            </div>
+            {% endif %}
+
+            <div class="divider my-1"></div>
+
+            <div>
+                <label class="label py-1">
+                    <span class="label-text font-semibold text-xs">Date Joined</span>
+                </label>
+                <p class="text-base-content pl-1 text-sm">{{ current_user.teacher.date_joined|date:"F d, Y" }}</p>
+            </div>
+            {% else %}
+            <div class="divider my-1"></div>
+
+            <div>
+                <label class="label py-1">
+                    <span class="label-text font-semibold text-xs">Member Since</span>
+                </label>
+                <p class="text-base-content pl-1 text-sm">{{ current_user.date_joined|date:"F d, Y" }}</p>
             </div>
             {% endif %}
         </div>

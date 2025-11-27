@@ -1,30 +1,32 @@
 # accounts/models.py
+from __future__ import annotations
+from typing import Any, Optional
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 from django.db import models
 from django.utils import timezone
 
 
-class UserManager(BaseUserManager):
+class UserManager(BaseUserManager['User']):
     """Custom manager for User model with email-based authentication."""
 
-    def _create_user(self, email, password=None, **extra_fields):
+    def _create_user(self, email: str, password: Optional[str] = None, **extra_fields: Any) -> 'User':
         """Create and save a user with the given email and password."""
         if not email:
             raise ValueError('Email address is required')
-        
+
         email = self.normalize_email(email)
         user = self.model(email=email, **extra_fields)
         user.set_password(password)
         user.save(using=self._db)
         return user
 
-    def create_user(self, email, password=None, **extra_fields):
+    def create_user(self, email: str, password: Optional[str] = None, **extra_fields: Any) -> 'User':
         """Create and save a regular user."""
         extra_fields.setdefault('is_staff', False)
         extra_fields.setdefault('is_superuser', False)
         return self._create_user(email, password, **extra_fields)
 
-    def create_superuser(self, email, password=None, **extra_fields):
+    def create_superuser(self, email: str, password: Optional[str] = None, **extra_fields: Any) -> 'User':
         """Create and save a superuser (school admin)."""
         extra_fields.setdefault('is_staff', True)
         extra_fields.setdefault('is_superuser', True)
@@ -37,22 +39,22 @@ class UserManager(BaseUserManager):
 
         return self._create_user(email, password, **extra_fields)
 
-    def create_teacher(self, email, password=None, **extra_fields):
+    def create_teacher(self, email: str, password: Optional[str] = None, **extra_fields: Any) -> 'User':
         """Create a teacher user."""
         extra_fields.setdefault('is_teacher', True)
         return self.create_user(email, password, **extra_fields)
 
-    def create_student(self, email, password=None, **extra_fields):
+    def create_student(self, email: str, password: Optional[str] = None, **extra_fields: Any) -> 'User':
         """Create a student user."""
         extra_fields.setdefault('is_student', True)
         return self.create_user(email, password, **extra_fields)
 
-    def create_parent(self, email, password=None, **extra_fields):
+    def create_parent(self, email: str, password: Optional[str] = None, **extra_fields: Any) -> 'User':
         """Create a parent user."""
         extra_fields.setdefault('is_parent', True)
         return self.create_user(email, password, **extra_fields)
 
-    def create_school_admin(self, email, password=None, **extra_fields):
+    def create_school_admin(self, email: str, password: Optional[str] = None, **extra_fields: Any) -> 'User':
         """Create a school admin user."""
         extra_fields.setdefault('is_school_admin', True)
         extra_fields.setdefault('is_staff', True)
@@ -74,6 +76,13 @@ class User(AbstractBaseUser, PermissionsMixin):
     is_teacher = models.BooleanField(default=False)
     is_student = models.BooleanField(default=False)
     is_parent = models.BooleanField(default=False)
+
+    # Password management
+    force_password_change = models.BooleanField(
+        default=False,
+        help_text='User must change password on next login'
+    )
+    password_changed_at = models.DateTimeField(null=True, blank=True)
 
     date_joined = models.DateTimeField(default=timezone.now)
     updated_at = models.DateTimeField(auto_now=True)
@@ -111,7 +120,7 @@ class User(AbstractBaseUser, PermissionsMixin):
             models.Index(fields=['is_parent', 'is_active']),
         ]
 
-    def get_profile(self):
+    def get_profile(self) -> Optional[Any]:
         """Return the related profile based on user role."""
         if self.is_student and hasattr(self, 'student'):
             return self.student
@@ -121,21 +130,21 @@ class User(AbstractBaseUser, PermissionsMixin):
             return self.parent
         return None
 
-    def get_full_name(self):
+    def get_full_name(self) -> str:
         """Return full name from related profile or fallback to email."""
         profile = self.get_profile()
         if profile and hasattr(profile, 'get_full_name'):
             return profile.get_full_name()
         return self.email.split('@')[0]
 
-    def get_short_name(self):
+    def get_short_name(self) -> str:
         """Return short name from related profile or email username."""
         profile = self.get_profile()
         if profile and hasattr(profile, 'first_name'):
             return profile.first_name
         return self.email.split('@')[0]
 
-    def get_user_type(self):
+    def get_user_type(self) -> str:
         """Return user type as string."""
         if self.is_superuser:
             return 'Super Admin'
@@ -149,8 +158,10 @@ class User(AbstractBaseUser, PermissionsMixin):
             return 'Parent'
         return 'User'
 
-    def has_role(self, role):
+    def has_role(self, role: str) -> bool:
         """Check if user has a specific role."""
+        if not isinstance(role, str):
+            return False
         role_map = {
             'school_admin': self.is_school_admin,
             'teacher': self.is_teacher,
@@ -164,6 +175,6 @@ class User(AbstractBaseUser, PermissionsMixin):
     # Add profile picture field for the sidebar UI
     avatar = models.ImageField(upload_to='avatars/', null=True, blank=True)
 
-    def __str__(self):
+    def __str__(self) -> str:
         full_name = self.get_full_name()
         return f"{full_name} ({self.email})" if full_name != self.email.split('@')[0] else self.email

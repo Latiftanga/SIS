@@ -12,12 +12,25 @@ EXPOSE 8000
 
 ARG DEV=false
 
-# Install system dependencies
+# Install system dependencies and Weasyprint runtime libraries
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
         postgresql-client \
         build-essential \
-        libpq-dev && \
+        libpq-dev \
+        fontconfig \
+        libpango-1.0-0 \
+        libpangoft2-1.0-0 \
+        libpangocairo-1.0-0 \
+        libgdk-pixbuf-2.0-0 \
+        libffi-dev \
+        shared-mime-info \
+        libcairo2 \
+        libglib2.0-0 \
+        libjpeg62-turbo \
+        libopenjp2-7 \
+        libtiff6 \
+        libwebp7 && \
     rm -rf /var/lib/apt/lists/*
 
 # Create virtual environment and install Python packages
@@ -30,17 +43,23 @@ RUN if [ "$DEV" = "true" ]; then \
         /py/bin/pip install -r /tmp/requirements.dev.txt; \
     fi
 
-# Cleanup build dependencies to reduce image size
-RUN apt-get purge -y --auto-remove \
-        build-essential \
-        libpq-dev && \
-    rm -rf /tmp /var/lib/apt/lists/*
+# Pre-generate fontconfig cache to avoid runtime warnings
+RUN fc-cache -fv
 
-# Create user
+# Cleanup build dependencies to reduce image size
+# Note: Keep Weasyprint runtime dependencies (libpango, libgdk-pixbuf, etc.)
+RUN apt-get purge -y --auto-remove \
+        build-essential && \
+    rm -rf /var/lib/apt/lists/*
+
+# Create user and fontconfig cache directory
 RUN adduser \
         --disabled-password \
         --no-create-home \
-        ttek_user
+        ttek_user && \
+    mkdir -p /var/cache/fontconfig && \
+    chown -R ttek_user:ttek_user /var/cache/fontconfig
 
 ENV PATH="/py/bin:$PATH"
+ENV XDG_CACHE_HOME="/var/cache/fontconfig"
 USER ttek_user

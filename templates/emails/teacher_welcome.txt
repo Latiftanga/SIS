@@ -1,0 +1,38 @@
+Welcome to {{ school_name }}!
+
+Dear {{ teacher_name }},
+
+Welcome to {{ school_name }}! Your teacher account has been created successfully.
+
+{% if user_account_created %}
+Your System Access Credentials
+------------------------------
+Email: {{ email }}
+Temporary Password: {{ password }}
+Login URL: {{ login_url }}
+
+IMPORTANT SECURITY NOTICE:
+- This is a temporary password that must be changed on your first login
+- Do not share this password with anyone
+- We recommend using a strong, unique password
+
+Next Steps:
+1. Visit the login page: {{ login_url }}
+2. Sign in using your email and the temporary password above
+3. You will be prompted to change your password immediately
+4. Complete your profile setup
+
+{% else %}
+Your teacher profile has been created in our system. A user account for system access has not been created yet. The school administrator can create one for you later if needed.
+
+{% endif %}
+
+Contact Information
+-------------------
+If you have any questions or need assistance, please contact the school administration.
+
+Best regards,
+{{ school_name }} Administration
+
+---
+This is an automated message. Please do not reply to this email.

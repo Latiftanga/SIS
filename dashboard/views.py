@@ -1,12 +1,14 @@
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import get_user_model
+from django.http import HttpRequest, HttpResponse
+from teachers.models import Teacher
 
 User = get_user_model()
 
 
 @login_required
-def dashboard(request):
+def dashboard(request: HttpRequest) -> HttpResponse:
     """
     The main dashboard controller.
     Renders the appropriate template based on the user's role.
@@ -32,10 +34,8 @@ def dashboard(request):
 
 # --- Helper Functions (Internal) ---
 
-def _admin_dashboard(request):
+def _admin_dashboard(request: HttpRequest) -> HttpResponse:
     """Admin/School Admin Dashboard"""
-    from teachers.models import Teacher
-    
     context = {
         'total_users': User.objects.count(),
         'teacher_count': Teacher.objects.filter(is_active=True).count(),
@@ -46,7 +46,7 @@ def _admin_dashboard(request):
     return render(request, 'dashboard/admin.html', context)
 
 
-def _teacher_dashboard(request):
+def _teacher_dashboard(request: HttpRequest) -> HttpResponse:
     """Teacher Dashboard"""
     context = {
         'my_classes': [],  # TODO: Fetch teacher's classes
@@ -55,7 +55,7 @@ def _teacher_dashboard(request):
     return render(request, 'dashboard/teacher.html', context)
 
 
-def _student_dashboard(request):
+def _student_dashboard(request: HttpRequest) -> HttpResponse:
     """Student Dashboard"""
     context = {
         'my_classes': [],  # TODO: Fetch student's classes
@@ -65,7 +65,7 @@ def _student_dashboard(request):
     return render(request, 'dashboard/student.html', context)
 
 
-def _parent_dashboard(request):
+def _parent_dashboard(request: HttpRequest) -> HttpResponse:
     """Parent Dashboard"""
     context = {
         'children': [],  # TODO: Fetch parent's children
@@ -74,6 +74,6 @@ def _parent_dashboard(request):
     return render(request, 'dashboard/parent.html', context)
 
 
-def _generic_dashboard(request):
+def _generic_dashboard(request: HttpRequest) -> HttpResponse:
     """Generic Dashboard for users without specific roles"""
     return render(request, 'dashboard/user.html')

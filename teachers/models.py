@@ -5,22 +5,36 @@ from django.core.validators import RegexValidator
 
 class Teacher(models.Model):
     """
-    Teacher profile linked to User via OneToOneField.
+    Teacher profile that can optionally be linked to a User account.
     Contains all teacher-specific information.
     """
-    # Link to User account
+
+    class Gender(models.TextChoices):
+        MALE = 'Male', 'Male'
+        FEMALE = 'Female', 'Female'
+
+    # Optional link to User account
     user = models.OneToOneField(
         settings.AUTH_USER_MODEL,
-        on_delete=models.CASCADE,
-        related_name='teacher'
+        on_delete=models.SET_NULL,
+        related_name='teacher',
+        null=True,
+        blank=True,
+        help_text='Optional user account for system access'
     )
-    
+
     # Personal Information
     first_name = models.CharField(max_length=100)
     last_name = models.CharField(max_length=100)
     other_names = models.CharField(max_length=100, blank=True)
     date_of_birth = models.DateField(null=True, blank=True)
-    gender = models.CharField(max_length=10, choices=[('Male', 'Male'), ('Female', 'Female')])
+    gender = models.CharField(max_length=10, choices=Gender.choices)
+
+    # Email for contact (independent of user account)
+    email = models.EmailField(
+        max_length=255,
+        help_text='Teacher email address for communication'
+    )
     
     # Contact Information
     phone_regex = RegexValidator(
@@ -54,10 +68,10 @@ class Teacher(models.Model):
         verbose_name = 'teacher'
         verbose_name_plural = 'teachers'
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"{self.first_name} {self.last_name}"
-    
-    def get_full_name(self):
+
+    def get_full_name(self) -> str:
         """Return full name with other names if available"""
         if self.other_names:
             return f"{self.first_name} {self.other_names} {self.last_name}"

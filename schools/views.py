@@ -1,9 +1,10 @@
 # schools/views.py
 from django.shortcuts import render
+from django.http import HttpRequest, HttpResponse
 from .models import School, Domain
 
 
-def index(request):
+def index(request: HttpRequest) -> HttpResponse:
     """
     Public landing page showing platform statistics.
     Only accessible from public schema via urls_public.py

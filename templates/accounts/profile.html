@@ -30,9 +30,9 @@
                     <div class="badge badge-primary badge-outline">{{ current_user.get_user_type }}</div>
                     
                     <div class="divider"></div>
-                    
-                    <button 
-                        hx-get="{% url 'profile_edit' %}"
+
+                    <button
+                        hx-get="{% url 'accounts:profile_edit' %}"
                         hx-target="#profile-content"
                         hx-swap="innerHTML"
                         class="btn btn-primary btn-sm w-full">
@@ -41,6 +41,15 @@
                         </svg>
                         Edit Profile
                     </button>
+
+                    <a href="{% url 'accounts:profile_export_pdf' %}"
+                       class="btn btn-outline btn-sm w-full mt-2"
+                       target="_blank">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10" />
+                        </svg>
+                        Export PDF
+                    </a>
                 </div>
             </div>
         </div>

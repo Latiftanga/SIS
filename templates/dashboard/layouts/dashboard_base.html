@@ -28,7 +28,8 @@
             
             <!-- Sidebar Content (Scrollable) -->
             <div class="flex-1 overflow-y-auto">
-                {% include 'dashboard/includes/_sidebar.html' %}
+                {% load navigation_tags %}
+                {% render_sidebar %}
             </div>
             
             <!-- Sidebar Footer -->
@@ -44,14 +45,14 @@
         </aside>
         
         <!-- Main Content Area -->
-        <div class="flex-1 flex flex-col overflow-hidden">
+        <div class="flex-1 flex flex-col overflow-hidden relative" style="z-index: 60;">
             <!-- Header -->
-            <header class="h-16 bg-base-100 border-b border-base-300">
-                {% include 'dashboard/includes/_header.html' %}
+            <header class="h-16 bg-base-100 border-b border-base-300 relative" style="z-index: 10000;">
+                {% render_navbar %}
             </header>
-            
+
             <!-- Main Content (Scrollable) -->
-            <main id="main-content" class="flex-1 overflow-y-auto p-4 lg:p-6">
+            <main id="main-content" class="flex-1 overflow-y-auto p-4 lg:p-6 relative" style="z-index: 10;">
                 {% include 'partials/messages.html' %}
                 {% block content %}{% endblock %}
             </main>
@@ -60,8 +61,8 @@
     
     <!-- Mobile Drawer (Outside main flex container) -->
     <input id="mobile-drawer" type="checkbox" class="hidden" />
-    
-    <div class="lg:hidden fixed inset-0 z-50 pointer-events-none">
+
+    <div class="lg:hidden fixed inset-0 z-40 pointer-events-none">
         <!-- Overlay -->
         <label for="mobile-drawer" class="absolute inset-0 bg-black/50 opacity-0 transition-opacity pointer-events-none peer-checked:opacity-100 peer-checked:pointer-events-auto"></label>
         
@@ -85,7 +86,7 @@
             
             <!-- Mobile Sidebar Content -->
             <div class="flex-1 overflow-y-auto">
-                {% include 'dashboard/includes/_sidebar.html' %}
+                {% render_sidebar %}
             </div>
             
             <!-- Mobile Sidebar Footer -->
@@ -100,7 +101,10 @@
             </div>
         </aside>
     </div>
-    
+
+    <!-- Global Modal Container (for HTMX out-of-band swaps) -->
+    <div id="modals-container"></div>
+
     <!-- Loading Indicator -->
     <div id="loading-indicator" class="htmx-indicator fixed top-20 right-4 z-50">
         <div class="alert alert-info shadow-lg">
@@ -126,35 +130,40 @@
     </style>
     
     <script>
-        // Theme persistence
-        const themeController = document.querySelector('.theme-controller');
-        if (themeController) {
-            const savedTheme = localStorage.getItem('theme') || '{{ school_settings.theme_name|default:"light" }}';
-            if (savedTheme === 'dark') themeController.checked = true;
-            themeController.addEventListener('change', () => {
-                localStorage.setItem('theme', themeController.checked ? 'dark' : 'light');
-            });
-        }
-        
+        // Theme persistence - wrapped to avoid redeclaration issues
+        (function() {
+            var themeController = document.querySelector('.theme-controller');
+            if (themeController) {
+                var savedTheme = localStorage.getItem('theme') || '{{ school_settings.theme_name|default:"light" }}';
+                if (savedTheme === 'dark') themeController.checked = true;
+                themeController.addEventListener('change', function() {
+                    localStorage.setItem('theme', themeController.checked ? 'dark' : 'light');
+                });
+            }
+        })();
+
         // Close mobile drawer when clicking a navigation menu link (not logo)
-        document.addEventListener('click', (e) => {
+        document.addEventListener('click', function(e) {
             // Only close if clicking a link inside the nav menu, not the header logo
             if (e.target.closest('#mobile-sidebar nav a')) {
-                const drawer = document.getElementById('mobile-drawer');
+                var drawer = document.getElementById('mobile-drawer');
                 if (drawer) drawer.checked = false;
             }
         });
-        
+
         // HTMX config
-        document.body.addEventListener('htmx:configRequest', (e) => {
+        document.body.addEventListener('htmx:configRequest', function(e) {
             e.detail.headers['X-CSRFToken'] = '{{ csrf_token }}';
             e.detail.headers['X-Requested-With'] = 'XMLHttpRequest';
         });
-        
+
         // Scroll to top after HTMX swap
-        document.body.addEventListener('htmx:afterSwap', (e) => {
+        document.body.addEventListener('htmx:afterSwap', function(e) {
             if (e.detail.target.id === 'main-content') e.detail.target.scrollTop = 0;
         });
     </script>
+
+    <!-- Extra JS block for page-specific scripts -->
+    {% block extra_js %}{% endblock %}
 </body>
 </html>
