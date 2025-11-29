@@ -53,6 +53,10 @@ TENANT_APPS = (
     'accounts',
     'dashboard',
     'teachers',
+    'students',
+    'classes',
+    'attendance',
+    'grading',
     'core',  # Core app with settings model
 )
 

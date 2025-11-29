@@ -1,0 +1,94 @@
+{% extends 'dashboard/layouts/dashboard_base.html' %}
+
+{% block title %}{{ action }} Assessment Type{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+    <div class="mb-6">
+        <div class="flex items-center justify-between">
+            <div>
+                <h1 class="text-2xl font-bold">{{ action }} Assessment Type</h1>
+                <p class="text-base-content/60 text-sm mt-1">Define a type of assessment for grading</p>
+            </div>
+            <a href="{% url 'grading:assessment_type_list' %}" class="btn btn-ghost btn-sm">Cancel</a>
+        </div>
+    </div>
+
+    <div class="card bg-base-100 shadow-xl">
+        <div class="card-body">
+            <form method="post" class="space-y-4">
+                {% csrf_token %}
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="form-control">
+                        <label class="label"><span class="label-text">Name <span class="text-error">*</span></span></label>
+                        {{ form.name }}
+                        {% if form.name.errors %}<div class="label"><span class="label-text-alt text-error">{{ form.name.errors.0 }}</span></div>{% endif %}
+                    </div>
+                    <div class="form-control">
+                        <label class="label"><span class="label-text">Code <span class="text-error">*</span></span></label>
+                        {{ form.code }}
+                        <div class="label"><span class="label-text-alt">Short code (e.g., CT, EXAM)</span></div>
+                        {% if form.code.errors %}<div class="label"><span class="label-text-alt text-error">{{ form.code.errors.0 }}</span></div>{% endif %}
+                    </div>
+                </div>
+
+                <div class="form-control">
+                    <label class="label"><span class="label-text">Description</span></label>
+                    {{ form.description }}
+                </div>
+
+                <div class="divider">Defaults</div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="form-control">
+                        <label class="label"><span class="label-text">Default Weight (%) <span class="text-error">*</span></span></label>
+                        {{ form.default_weight }}
+                        <div class="label"><span class="label-text-alt">Percentage contribution to final grade</span></div>
+                        {% if form.default_weight.errors %}<div class="label"><span class="label-text-alt text-error">{{ form.default_weight.errors.0 }}</span></div>{% endif %}
+                    </div>
+                    <div class="form-control">
+                        <label class="label"><span class="label-text">Default Max Score <span class="text-error">*</span></span></label>
+                        {{ form.default_max_score }}
+                        <div class="label"><span class="label-text-alt">Default maximum score for this type</span></div>
+                        {% if form.default_max_score.errors %}<div class="label"><span class="label-text-alt text-error">{{ form.default_max_score.errors.0 }}</span></div>{% endif %}
+                    </div>
+                </div>
+
+                <div class="alert alert-info">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-current shrink-0 w-6 h-6">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    <div class="text-sm">
+                        <p>These default values will be used when creating new assessments, but can be overridden per assessment.</p>
+                    </div>
+                </div>
+
+                <div class="divider">Classification</div>
+
+                <div class="form-control">
+                    <label class="label cursor-pointer justify-start gap-3">
+                        {{ form.is_exam }}
+                        <div>
+                            <span class="label-text font-semibold">This is an Exam</span>
+                            <div class="label-text-alt text-base-content/60">Check if this is a final exam (not continuous assessment)</div>
+                        </div>
+                    </label>
+                </div>
+
+                <div class="form-control">
+                    <label class="label cursor-pointer justify-start gap-3">
+                        {{ form.is_active }}
+                        <span class="label-text">Active</span>
+                    </label>
+                </div>
+
+                <div class="card-actions justify-end pt-4">
+                    <a href="{% url 'grading:assessment_type_list' %}" class="btn btn-ghost">Cancel</a>
+                    <button type="submit" class="btn btn-primary">{{ action }} Assessment Type</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

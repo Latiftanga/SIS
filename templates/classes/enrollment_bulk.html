@@ -1,0 +1,208 @@
+{% extends 'dashboard/layouts/dashboard_base.html' %}
+
+{% block title %}Enroll Students{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto">
+    <div class="mb-6">
+        <div class="flex items-center justify-between">
+            <div>
+                <h1 class="text-2xl font-bold">Enroll Students in {{ class.name }}</h1>
+                <p class="text-base-content/60 text-sm mt-1">Select students to enroll in this class</p>
+            </div>
+            <a href="{% url 'classes:class_detail' class.id %}" class="btn btn-ghost btn-sm">Cancel</a>
+        </div>
+    </div>
+
+    <div class="card bg-base-100 shadow-xl">
+        <div class="card-body">
+            <form method="post" class="space-y-4" hx-boost="false">
+                {% csrf_token %}
+
+                <!-- Enrollment Date -->
+                <div class="form-control max-w-xs">
+                    <label class="label"><span class="label-text">Enrollment Date <span class="text-error">*</span></span></label>
+                    <input type="date"
+                           name="enrollment_date"
+                           value="{{ enrollment_date|date:'Y-m-d' }}"
+                           class="input input-bordered input-sm w-full"
+                           required>
+                </div>
+
+                <!-- Filters -->
+                <div class="divider">Filter Students</div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div class="form-control">
+                        <label class="label"><span class="label-text">Search by Name or ID</span></label>
+                        <input type="text"
+                               name="search_filter"
+                               id="search_filter"
+                               placeholder="Search students..."
+                               value="{{ search }}"
+                               class="input input-bordered input-sm">
+                    </div>
+                    <div class="form-control">
+                        <label class="label"><span class="label-text">Filter by Grade Level</span></label>
+                        <select name="grade_filter" id="grade_filter" class="select select-bordered select-sm">
+                            <option value="">All Grades</option>
+                            {% for grade in all_grades %}
+                            <option value="{{ grade }}" {% if grade == grade_filter %}selected{% endif %}>
+                                {{ grade }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <div class="flex gap-2 mb-4">
+                    <button type="button" id="apply-filters" class="btn btn-sm btn-primary">Apply Filters</button>
+                    <a href="{% url 'classes:enrollment_bulk' class.id %}" class="btn btn-sm btn-ghost">Clear Filters</a>
+                </div>
+
+                {% if search or grade_filter %}
+                <div class="alert alert-success text-sm mb-4">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+                    </svg>
+                    <div>
+                        <div class="font-semibold">Filters Active:</div>
+                        <div>
+                            {% if grade_filter %}Grade: <strong>{{ grade_filter }}</strong>{% endif %}
+                            {% if search %}{% if grade_filter %} | {% endif %}Search: <strong>"{{ search }}"</strong>{% endif %}
+                            | Showing <strong>{{ students.count }}</strong> student(s)
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Select All Checkbox -->
+                <div class="form-control">
+                    <label class="label cursor-pointer justify-start gap-3">
+                        <input type="checkbox"
+                               id="select-all"
+                               class="checkbox checkbox-primary">
+                        <span class="label-text font-semibold">Select All Students</span>
+                    </label>
+                </div>
+
+                <!-- Students Table -->
+                {% if students %}
+                <div class="overflow-x-auto">
+                    <table class="table table-zebra">
+                        <thead>
+                            <tr>
+                                <th>
+                                    <span class="sr-only">Select</span>
+                                </th>
+                                <th>Student ID</th>
+                                <th>Name</th>
+                                <th>Current Grade</th>
+                                <th>Gender</th>
+                                <th>Guardian</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for student in students %}
+                            <tr>
+                                <td>
+                                    <input type="checkbox"
+                                           name="students"
+                                           value="{{ student.id }}"
+                                           class="checkbox checkbox-primary student-checkbox">
+                                </td>
+                                <td><span class="badge badge-outline">{{ student.student_id }}</span></td>
+                                <td>
+                                    <div class="font-semibold">{{ student.get_full_name }}</div>
+                                    {% if student.enrolled_elsewhere %}
+                                    <span class="badge badge-warning badge-xs mt-1">Already enrolled in another class</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ student.current_grade }}</td>
+                                <td>{{ student.gender }}</td>
+                                <td class="text-sm text-base-content/60">{{ student.guardian_name }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="alert alert-info text-sm">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <div>
+                        <div class="font-semibold">Class Capacity: {{ class.capacity }}</div>
+                        <div>Current Enrollment: {{ class.get_student_count }} | Available Slots: {{ class.get_available_capacity }}</div>
+                    </div>
+                </div>
+
+                <div class="card-actions justify-end pt-4">
+                    <a href="{% url 'classes:class_detail' class.id %}" class="btn btn-ghost">Cancel</a>
+                    <button type="submit" class="btn btn-primary">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+                        </svg>
+                        Enroll Selected Students
+                    </button>
+                </div>
+                {% else %}
+                <div class="text-center py-12">
+                    <h3 class="text-xl font-semibold text-base-content/60">No students available</h3>
+                    <p class="text-base-content/40 mt-2">All active students are already enrolled or no students exist</p>
+                </div>
+                {% endif %}
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- JavaScript for Select All and Filters -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const selectAllCheckbox = document.getElementById('select-all');
+        const studentCheckboxes = document.querySelectorAll('.student-checkbox');
+        const applyFiltersBtn = document.getElementById('apply-filters');
+
+        // Select All functionality
+        if (selectAllCheckbox) {
+            selectAllCheckbox.addEventListener('change', function() {
+                studentCheckboxes.forEach(checkbox => {
+                    checkbox.checked = this.checked;
+                });
+            });
+
+            // Update select-all checkbox when individual checkboxes change
+            studentCheckboxes.forEach(checkbox => {
+                checkbox.addEventListener('change', function() {
+                    const allChecked = Array.from(studentCheckboxes).every(cb => cb.checked);
+                    const someChecked = Array.from(studentCheckboxes).some(cb => cb.checked);
+                    selectAllCheckbox.checked = allChecked;
+                    selectAllCheckbox.indeterminate = someChecked && !allChecked;
+                });
+            });
+        }
+
+        // Filter functionality
+        if (applyFiltersBtn) {
+            applyFiltersBtn.addEventListener('click', function() {
+                const search = document.getElementById('search_filter').value;
+                const grade = document.getElementById('grade_filter').value;
+
+                const url = new URL(window.location.href);
+                url.searchParams.set('search', search);
+                url.searchParams.set('grade', grade);
+
+                window.location.href = url.toString();
+            });
+
+            // Allow Enter key to apply filters
+            document.getElementById('search_filter').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    applyFiltersBtn.click();
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}

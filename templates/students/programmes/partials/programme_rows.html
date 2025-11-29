@@ -1,0 +1,33 @@
+{% for programme in programmes %}
+<tr>
+    <td><span class="badge badge-outline">{{ programme.code }}</span></td>
+    <td class="font-semibold">{{ programme.name }}</td>
+    <td class="text-sm text-base-content/60">{{ programme.description|truncatewords:10|default:"—" }}</td>
+    <td>
+        {% if programme.is_active %}
+        <span class="badge badge-success badge-sm">Active</span>
+        {% else %}
+        <span class="badge badge-error badge-sm">Inactive</span>
+        {% endif %}
+    </td>
+    <td>
+        <div class="flex gap-2">
+            <a href="{% url 'students:programme_edit' programme.id %}" class="btn btn-ghost btn-xs">Edit</a>
+            <button class="btn btn-ghost btn-xs text-error"
+                    hx-delete="{% url 'students:programme_delete' programme.id %}"
+                    hx-confirm="Delete this programme?"
+                    hx-swap="outerHTML swap:1s"
+                    hx-target="closest tr">
+                Delete
+            </button>
+        </div>
+    </td>
+</tr>
+{% empty %}
+<tr>
+    <td colspan="5" class="text-center py-12">
+        <h3 class="text-xl font-semibold text-base-content/60">No programmes found</h3>
+        <p class="text-base-content/40 mt-2">Add your first programme to get started</p>
+    </td>
+</tr>
+{% endfor %}

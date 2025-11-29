@@ -1,0 +1,74 @@
+{% extends 'dashboard/layouts/dashboard_base.html' %}
+
+{% block title %}Bulk Import Students{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto space-y-6">
+    <div class="flex justify-between items-center">
+        <div>
+            <h1 class="text-3xl font-bold">Bulk Import Students</h1>
+            <p class="text-base-content/60 mt-1">Upload Excel or CSV file to import multiple students at once</p>
+        </div>
+        <a href="{% url 'students:list' %}" class="btn btn-ghost btn-sm">Back to Students</a>
+    </div>
+
+    <!-- Download Template -->
+    <div class="card bg-base-100 shadow-xl">
+        <div class="card-body">
+            <h2 class="card-title">Step 1: Download Template</h2>
+            <p class="text-sm">Download the import template and fill in your student data</p>
+            <div class="card-actions">
+                <a href="{% url 'students:download_template' %}?format=xlsx"
+                   class="btn btn-sm btn-outline"
+                   download
+                   hx-boost="false">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    Download Excel Template
+                </a>
+                <a href="{% url 'students:download_template' %}?format=csv"
+                   class="btn btn-sm btn-outline"
+                   download
+                   hx-boost="false">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    Download CSV Template
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Upload Form -->
+    <div class="card bg-base-100 shadow-xl">
+        <div class="card-body">
+            <h2 class="card-title">Step 2: Upload File</h2>
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                
+                <div class="form-control">
+                    <label class="label"><span class="label-text">{{ form.file.label }}</span></label>
+                    {{ form.file }}
+                    {% if form.file.errors %}
+                    <div class="label"><span class="label-text-alt text-error">{{ form.file.errors.0 }}</span></div>
+                    {% endif %}
+                    <div class="label"><span class="label-text-alt">{{ form.file.help_text }}</span></div>
+                </div>
+
+                <div class="form-control mt-4">
+                    <label class="label cursor-pointer justify-start gap-3">
+                        {{ form.create_user_accounts }}
+                        <span class="label-text">{{ form.create_user_accounts.label }}</span>
+                    </label>
+                    <div class="label"><span class="label-text-alt">{{ form.create_user_accounts.help_text }}</span></div>
+                </div>
+
+                <div class="card-actions justify-end mt-6">
+                    <button type="submit" class="btn btn-primary">Upload and Preview</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

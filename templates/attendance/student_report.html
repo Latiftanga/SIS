@@ -1,0 +1,102 @@
+{% extends 'dashboard/layouts/dashboard_base.html' %}
+
+{% block title %}Attendance Report - {{ student.get_full_name }}{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto space-y-6">
+    <!-- Header -->
+    <div class="flex justify-between items-center">
+        <div>
+            <h1 class="text-2xl font-bold">Attendance Report</h1>
+            <p class="text-base-content/60 text-sm mt-1">{{ student.get_full_name }} ({{ student.student_id }})</p>
+        </div>
+        <a href="{% url 'students:detail' student.id %}" class="btn btn-ghost btn-sm">Back to Student</a>
+    </div>
+
+    <!-- Stats -->
+    <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
+        <div class="stat bg-base-100 shadow-xl rounded-box">
+            <div class="stat-title">Total Sessions</div>
+            <div class="stat-value text-primary">{{ total_sessions }}</div>
+        </div>
+        <div class="stat bg-base-100 shadow-xl rounded-box">
+            <div class="stat-title">Present</div>
+            <div class="stat-value text-success">{{ present_count }}</div>
+        </div>
+        <div class="stat bg-base-100 shadow-xl rounded-box">
+            <div class="stat-title">Absent</div>
+            <div class="stat-value text-error">{{ absent_count }}</div>
+        </div>
+        <div class="stat bg-base-100 shadow-xl rounded-box">
+            <div class="stat-title">Late</div>
+            <div class="stat-value text-warning">{{ late_count }}</div>
+        </div>
+        <div class="stat bg-base-100 shadow-xl rounded-box">
+            <div class="stat-title">Attendance Rate</div>
+            <div class="stat-value">{{ attendance_rate }}%</div>
+        </div>
+    </div>
+
+    <!-- Attendance Records -->
+    <div class="card bg-base-100 shadow-xl">
+        <div class="card-body">
+            <h2 class="card-title">Attendance History</h2>
+
+            {% if records %}
+            <div class="overflow-x-auto">
+                <table class="table table-zebra">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Class</th>
+                            <th>Type</th>
+                            <th>Status</th>
+                            <th>Time In</th>
+                            <th>Remarks</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for record in records %}
+                        <tr>
+                            <td>{{ record.session.date|date:"M d, Y" }}</td>
+                            <td>{{ record.session.class_obj.name }}</td>
+                            <td>
+                                {% if record.session.session_type == 'daily' %}
+                                <span class="badge badge-info badge-xs">Daily</span>
+                                {% else %}
+                                <span class="badge badge-secondary badge-xs">{{ record.session.subject.subject.name }}</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if record.status == 'present' %}
+                                <span class="badge badge-success badge-sm">✓ Present</span>
+                                {% elif record.status == 'absent' %}
+                                <span class="badge badge-error badge-sm">✗ Absent</span>
+                                {% elif record.status == 'late' %}
+                                <span class="badge badge-warning badge-sm">⏰ Late</span>
+                                {% elif record.status == 'excused' %}
+                                <span class="badge badge-info badge-sm">Excused</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if record.time_in %}
+                                {{ record.time_in|time:"g:i A" }}
+                                {% else %}
+                                —
+                                {% endif %}
+                            </td>
+                            <td class="text-sm">{{ record.remarks|default:"—" }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center py-12">
+                <p class="text-base-content/60">No attendance records found</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

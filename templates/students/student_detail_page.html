@@ -1,0 +1,112 @@
+{% extends 'dashboard/layouts/dashboard_base.html' %}
+
+{% block title %}{{ student.get_full_name }}{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto space-y-6">
+    <!-- Header -->
+    <div class="flex justify-between items-center">
+        <div>
+            <h1 class="text-3xl font-bold">{{ student.get_full_name }}</h1>
+            <p class="text-base-content/60 mt-1">Student ID: {{ student.student_id }}</p>
+        </div>
+        <div class="flex gap-2">
+            <a href="{% url 'attendance:student_report' student.id %}" class="btn btn-primary btn-sm">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                </svg>
+                Attendance Report
+            </a>
+            <a href="{% url 'students:list' %}" class="btn btn-ghost btn-sm">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                </svg>
+                Back to Students
+            </a>
+        </div>
+    </div>
+
+    <!-- Student Info Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <!-- Personal Info -->
+        <div class="card bg-base-100 shadow-xl">
+            <div class="card-body">
+                <h2 class="card-title text-lg">Personal Information</h2>
+                <div class="space-y-2 text-sm">
+                    <div><span class="font-semibold">Full Name:</span> {{ student.get_full_name }}</div>
+                    <div><span class="font-semibold">Gender:</span> {{ student.gender }}</div>
+                    <div><span class="font-semibold">Date of Birth:</span> {{ student.date_of_birth|date:"M d, Y" }}</div>
+                    <div><span class="font-semibold">Age:</span> {{ student.get_age }} years</div>
+                    {% if student.email %}<div><span class="font-semibold">Email:</span> {{ student.email }}</div>{% endif %}
+                    {% if student.phone_number %}<div><span class="font-semibold">Phone:</span> {{ student.phone_number }}</div>{% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Student Info -->
+        <div class="card bg-base-100 shadow-xl">
+            <div class="card-body">
+                <h2 class="card-title text-lg">Student Information</h2>
+                <div class="space-y-2 text-sm">
+                    <div><span class="font-semibold">Student ID:</span> {{ student.student_id }}</div>
+                    <div><span class="font-semibold">Current Grade:</span> {{ student.current_grade }}</div>
+                    <div><span class="font-semibold">Admission Date:</span> {{ student.admission_date|date:"M d, Y" }}</div>
+                    <div>
+                        <span class="font-semibold">Status:</span>
+                        {% if student.is_active %}
+                        <span class="badge badge-success badge-sm">Active</span>
+                        {% else %}
+                        <span class="badge badge-error badge-sm">Inactive</span>
+                        {% endif %}
+                    </div>
+                    {% if student.user %}
+                    <div><span class="font-semibold">Portal Access:</span> <span class="badge badge-success badge-sm">Enabled</span></div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Guardian Info -->
+        <div class="card bg-base-100 shadow-xl">
+            <div class="card-body">
+                <h2 class="card-title text-lg">Guardian Information</h2>
+                <div class="space-y-2 text-sm">
+                    <div><span class="font-semibold">Name:</span> {{ student.guardian_name }}</div>
+                    <div><span class="font-semibold">Relationship:</span> {{ student.guardian_relationship }}</div>
+                    <div><span class="font-semibold">Phone:</span> {{ student.guardian_phone }}</div>
+                    {% if student.guardian_email %}<div><span class="font-semibold">Email:</span> {{ student.guardian_email }}</div>{% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Additional Information -->
+    {% if student.residential_address or student.medical_conditions or student.emergency_contact_name %}
+    <div class="card bg-base-100 shadow-xl">
+        <div class="card-body">
+            <h2 class="card-title">Additional Information</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                {% if student.residential_address %}
+                <div>
+                    <span class="font-semibold">Address:</span>
+                    <p class="mt-1">{{ student.residential_address }}</p>
+                </div>
+                {% endif %}
+                {% if student.emergency_contact_name %}
+                <div>
+                    <span class="font-semibold">Emergency Contact:</span>
+                    <p class="mt-1">{{ student.emergency_contact_name }} - {{ student.emergency_contact_phone }}</p>
+                </div>
+                {% endif %}
+                {% if student.medical_conditions %}
+                <div class="md:col-span-2">
+                    <span class="font-semibold">Medical Information:</span>
+                    <p class="mt-1">{{ student.medical_conditions }}</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

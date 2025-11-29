@@ -1,0 +1,85 @@
+{% extends 'dashboard/layouts/dashboard_base.html' %}
+
+{% block title %}Preview Import{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto space-y-6">
+    <div class="flex justify-between items-center">
+        <div>
+            <h1 class="text-3xl font-bold">Preview Import</h1>
+            <p class="text-base-content/60 mt-1">Review the data before importing</p>
+        </div>
+        <a href="{% url 'students:bulk_import' %}" class="btn btn-ghost btn-sm">Back</a>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats shadow w-full">
+        <div class="stat">
+            <div class="stat-title">Total Records</div>
+            <div class="stat-value text-primary">{{ total }}</div>
+        </div>
+        <div class="stat">
+            <div class="stat-title">Valid</div>
+            <div class="stat-value text-success">{{ valid }}</div>
+        </div>
+        <div class="stat">
+            <div class="stat-title">Invalid</div>
+            <div class="stat-value text-error">{{ invalid }}</div>
+        </div>
+    </div>
+
+    <!-- Preview Table -->
+    <div class="card bg-base-100 shadow-xl">
+        <div class="card-body">
+            <div class="overflow-x-auto">
+                <table class="table table-zebra table-xs">
+                    <thead>
+                        <tr>
+                            <th>Row</th>
+                            <th>Name</th>
+                            <th>Student ID</th>
+                            <th>Grade</th>
+                            <th>Guardian</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for student in students %}
+                        <tr class="{% if not student.valid %}bg-error/10{% endif %}">
+                            <td>{{ student.row_num }}</td>
+                            <td>{{ student.first_name }} {{ student.last_name }}</td>
+                            <td>{{ student.student_id }}</td>
+                            <td>{{ student.current_grade }}</td>
+                            <td>{{ student.guardian_name }}</td>
+                            <td>
+                                {% if student.valid %}
+                                <span class="badge badge-success badge-xs">Valid</span>
+                                {% else %}
+                                <span class="badge badge-error badge-xs">Invalid</span>
+                                <div class="text-xs text-error mt-1">
+                                    {% for error in student.errors %}
+                                    <div>• {{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            {% if valid > 0 %}
+            <div class="card-actions justify-end mt-4">
+                <form method="post" action="{% url 'students:bulk_import_process' %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-primary">
+                        Import {{ valid }} Valid Student{% if valid != 1 %}s{% endif %}
+                    </button>
+                </form>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

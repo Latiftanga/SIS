@@ -1,0 +1,121 @@
+{% extends 'dashboard/layouts/dashboard_base.html' %}
+
+{% block title %}{{ period.academic_year }} - {{ period.get_term_display }}{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <div class="flex justify-between items-center">
+        <div>
+            <h1 class="text-3xl font-bold text-base-content">
+                {{ period.academic_year }} - {{ period.get_term_display }}
+            </h1>
+            <div class="flex gap-2 mt-2">
+                {% if period.is_current %}
+                <span class="badge badge-success">Current Period</span>
+                {% endif %}
+                {% if period.is_active %}
+                <span class="badge badge-info">Active</span>
+                {% else %}
+                <span class="badge badge-ghost">Inactive</span>
+                {% endif %}
+            </div>
+        </div>
+        <div class="flex gap-2">
+            <a href="{% url 'grading:period_update' period.id %}" class="btn btn-sm btn-outline">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                </svg>
+                Edit
+            </a>
+            <a href="{% url 'grading:period_list' %}" class="btn btn-sm btn-ghost">Back to List</a>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="stat bg-base-100 shadow-xl rounded-lg">
+            <div class="stat-title">Total Assessments</div>
+            <div class="stat-value text-primary">{{ total_assessments }}</div>
+            <div class="stat-desc">Created in this period</div>
+        </div>
+
+        <div class="stat bg-base-100 shadow-xl rounded-lg">
+            <div class="stat-title">Published Assessments</div>
+            <div class="stat-value text-success">{{ published_assessments }}</div>
+            <div class="stat-desc">Visible to students</div>
+        </div>
+
+        <div class="stat bg-base-100 shadow-xl rounded-lg">
+            <div class="stat-title">Exam Assessments</div>
+            <div class="stat-value text-accent">{{ exam_assessments }}</div>
+            <div class="stat-desc">Final term exams</div>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div class="card bg-base-100 shadow-xl">
+            <div class="card-body">
+                <h2 class="card-title">Period Details</h2>
+                <div class="space-y-3">
+                    <div class="flex justify-between py-2 border-b border-base-300">
+                        <span class="text-base-content/60">Academic Year:</span>
+                        <span class="font-semibold">{{ period.academic_year }}</span>
+                    </div>
+                    <div class="flex justify-between py-2 border-b border-base-300">
+                        <span class="text-base-content/60">Term:</span>
+                        <span class="font-semibold">{{ period.get_term_display }}</span>
+                    </div>
+                    <div class="flex justify-between py-2 border-b border-base-300">
+                        <span class="text-base-content/60">Start Date:</span>
+                        <span class="font-semibold">{{ period.start_date|date:"F d, Y" }}</span>
+                    </div>
+                    <div class="flex justify-between py-2 border-b border-base-300">
+                        <span class="text-base-content/60">End Date:</span>
+                        <span class="font-semibold">{{ period.end_date|date:"F d, Y" }}</span>
+                    </div>
+                    <div class="flex justify-between py-2 border-b border-base-300">
+                        <span class="text-base-content/60">Grade Entry Deadline:</span>
+                        <span class="font-semibold">{{ period.grade_entry_deadline|date:"F d, Y" }}</span>
+                    </div>
+                    {% if period.report_generation_date %}
+                    <div class="flex justify-between py-2 border-b border-base-300">
+                        <span class="text-base-content/60">Report Generation Date:</span>
+                        <span class="font-semibold">{{ period.report_generation_date|date:"F d, Y" }}</span>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="card bg-base-100 shadow-xl">
+            <div class="card-body">
+                <h2 class="card-title">Quick Actions</h2>
+                <div class="space-y-2">
+                    <a href="{% url 'grading:assessment_list' %}?period={{ period.id }}" class="btn btn-outline btn-sm w-full justify-start">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+                        </svg>
+                        View Assessments
+                    </a>
+                    {% if not period.is_current %}
+                    <form method="post" action="{% url 'grading:set_current_period' period.id %}">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-outline btn-sm w-full justify-start">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"></path>
+                            </svg>
+                            Set as Current Period
+                        </button>
+                    </form>
+                    {% endif %}
+                    <a href="{% url 'grading:term_grade_list' %}?period={{ period.id }}" class="btn btn-outline btn-sm w-full justify-start">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                        </svg>
+                        View Term Grades
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

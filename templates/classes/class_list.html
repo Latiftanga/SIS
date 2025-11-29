@@ -1,0 +1,106 @@
+{% extends 'dashboard/layouts/dashboard_base.html' %}
+
+{% block title %}Classes{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Header -->
+    <div class="flex justify-between items-center">
+        <div>
+            <h1 class="text-3xl font-bold text-base-content">Classes</h1>
+            <p class="text-base-content/60 mt-1">Manage school classes and grades</p>
+        </div>
+        <a href="{% url 'classes:class_create' %}" class="btn btn-primary btn-sm">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+            </svg>
+            Add Class
+        </a>
+    </div>
+
+    <!-- Search and Filters -->
+    <div class="card bg-base-100 shadow-xl">
+        <div class="card-body">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div class="form-control md:col-span-2">
+                    <input type="text" name="search" placeholder="Search classes..." 
+                           class="input input-bordered input-sm w-full" value="{{ search }}" />
+                </div>
+                <div class="form-control">
+                    <select name="status" class="select select-bordered select-sm w-full">
+                        <option value="">All Status</option>
+                        <option value="active" {% if status == 'active' %}selected{% endif %}>Active</option>
+                        <option value="inactive" {% if status == 'inactive' %}selected{% endif %}>Inactive</option>
+                    </select>
+                </div>
+                <div class="form-control">
+                    <select name="grade" class="select select-bordered select-sm w-full">
+                        <option value="">All Grades</option>
+                        {% for g in grades %}
+                        <option value="{{ g }}" {% if grade == g %}selected{% endif %}>{{ g }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Classes Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {% for class in classes %}
+        <div class="card bg-base-100 shadow-xl hover:shadow-2xl transition-shadow">
+            <div class="card-body">
+                <h2 class="card-title">
+                    {{ class.name }}
+                    {% if class.is_active %}
+                    <span class="badge badge-success badge-sm">Active</span>
+                    {% else %}
+                    <span class="badge badge-error badge-sm">Inactive</span>
+                    {% endif %}
+                </h2>
+                
+                <div class="space-y-2 text-sm">
+                    <div class="flex justify-between">
+                        <span class="text-base-content/60">Grade Level:</span>
+                        <span class="font-semibold">{{ class.grade_level }}</span>
+                    </div>
+                    {% if class.section %}
+                    <div class="flex justify-between">
+                        <span class="text-base-content/60">Section:</span>
+                        <span class="font-semibold">{{ class.section }}</span>
+                    </div>
+                    {% endif %}
+                    <div class="flex justify-between">
+                        <span class="text-base-content/60">Class Teacher:</span>
+                        <span class="font-semibold">{{ class.class_teacher.get_full_name|default:"Not assigned" }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-base-content/60">Students:</span>
+                        <span class="font-semibold">{{ class.student_count }} / {{ class.capacity }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-base-content/60">Academic Year:</span>
+                        <span class="font-semibold">{{ class.academic_year }}</span>
+                    </div>
+                    {% if class.room_number %}
+                    <div class="flex justify-between">
+                        <span class="text-base-content/60">Room:</span>
+                        <span class="font-semibold">{{ class.room_number }}</span>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <div class="card-actions justify-end mt-4">
+                    <a href="{% url 'classes:class_detail' class.id %}" class="btn btn-primary btn-sm">View Details</a>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-span-full text-center py-12">
+            <h3 class="text-xl font-semibold text-base-content/60">No classes found</h3>
+            <p class="text-base-content/40 mt-2">Create your first class to get started</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

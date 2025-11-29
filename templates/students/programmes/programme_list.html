@@ -1,0 +1,66 @@
+{% extends 'dashboard/layouts/dashboard_base.html' %}
+
+{% block title %}Programmes{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <div class="flex justify-between items-center">
+        <div>
+            <h1 class="text-3xl font-bold text-base-content">Programmes</h1>
+            <p class="text-base-content/60 mt-1">Manage academic programmes (for SHS schools)</p>
+        </div>
+        <a href="{% url 'students:programme_create' %}" class="btn btn-primary btn-sm">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+            </svg>
+            Add Programme
+        </a>
+    </div>
+
+    <div class="card bg-base-100 shadow-xl">
+        <div class="card-body">
+            <!-- Search and Filters -->
+            <div class="flex gap-4 mb-4">
+                <div class="flex-1">
+                    <input type="text"
+                           name="search"
+                           placeholder="Search programmes..."
+                           class="input input-bordered input-sm w-full"
+                           value="{{ search }}"
+                           hx-get="{% url 'students:programme_list' %}"
+                           hx-trigger="keyup changed delay:300ms"
+                           hx-target="#programmes-table"
+                           hx-include="[name='status']">
+                </div>
+                <select name="status"
+                        class="select select-bordered select-sm"
+                        hx-get="{% url 'students:programme_list' %}"
+                        hx-trigger="change"
+                        hx-target="#programmes-table"
+                        hx-include="[name='search']">
+                    <option value="">All Programmes</option>
+                    <option value="active" {% if status == 'active' %}selected{% endif %}>Active Only</option>
+                    <option value="inactive" {% if status == 'inactive' %}selected{% endif %}>Inactive Only</option>
+                </select>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="table table-zebra">
+                    <thead>
+                        <tr>
+                            <th>Code</th>
+                            <th>Name</th>
+                            <th>Description</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="programmes-table">
+                        {% include 'students/programmes/partials/programme_rows.html' %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

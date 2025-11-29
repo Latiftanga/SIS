@@ -1,0 +1,103 @@
+{% extends 'dashboard/layouts/dashboard_base.html' %}
+
+{% block title %}Class Attendance Report - {{ class.name }}{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto space-y-6">
+    <!-- Header -->
+    <div class="flex justify-between items-center">
+        <div>
+            <h1 class="text-2xl font-bold">Class Attendance Report</h1>
+            <p class="text-base-content/60 text-sm mt-1">{{ class.name }} | {{ class.academic_year }}</p>
+        </div>
+        <a href="{% url 'classes:class_detail' class.id %}" class="btn btn-ghost btn-sm">Back to Class</a>
+    </div>
+
+    <!-- Date Filter -->
+    <div class="card bg-base-100 shadow-xl">
+        <div class="card-body">
+            <h2 class="card-title text-lg">Date Range</h2>
+            <form method="get" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="form-control">
+                    <label class="label"><span class="label-text">From Date</span></label>
+                    <input type="date" name="date_from" value="{{ date_from }}" class="input input-bordered input-sm">
+                </div>
+                <div class="form-control">
+                    <label class="label"><span class="label-text">To Date</span></label>
+                    <input type="date" name="date_to" value="{{ date_to }}" class="input input-bordered input-sm">
+                </div>
+                <div class="form-control flex flex-row gap-2 items-end">
+                    <button type="submit" class="btn btn-sm btn-primary">Apply</button>
+                    <a href="{% url 'attendance:class_report' class.id %}" class="btn btn-sm btn-ghost">Reset</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Sessions Summary -->
+    <div class="card bg-base-100 shadow-xl">
+        <div class="card-body">
+            <h2 class="card-title">Sessions in Date Range</h2>
+            <div class="stat">
+                <div class="stat-title">Total Sessions</div>
+                <div class="stat-value text-primary">{{ sessions.count }}</div>
+                <div class="stat-desc">{{ date_from|date:"M d, Y" }} to {{ date_to|date:"M d, Y" }}</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Student Attendance Stats -->
+    <div class="card bg-base-100 shadow-xl">
+        <div class="card-body">
+            <h2 class="card-title">Student Attendance Statistics</h2>
+
+            {% if student_stats %}
+            <div class="overflow-x-auto">
+                <table class="table table-zebra">
+                    <thead>
+                        <tr>
+                            <th>Roll No.</th>
+                            <th>Student</th>
+                            <th>Student ID</th>
+                            <th>Total Sessions</th>
+                            <th>Present</th>
+                            <th>Late</th>
+                            <th>Absent</th>
+                            <th>Attendance Rate</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for stat in student_stats %}
+                        <tr>
+                            <td>{{ stat.roll_number|default:"—" }}</td>
+                            <td>
+                                <a href="{% url 'attendance:student_report' stat.student.id %}" class="link">
+                                    {{ stat.student.get_full_name }}
+                                </a>
+                            </td>
+                            <td><span class="badge badge-outline">{{ stat.student.student_id }}</span></td>
+                            <td>{{ stat.total }}</td>
+                            <td><span class="badge badge-success badge-sm">{{ stat.present }}</span></td>
+                            <td><span class="badge badge-warning badge-sm">{{ stat.late }}</span></td>
+                            <td><span class="badge badge-error badge-sm">{{ stat.absent }}</span></td>
+                            <td>
+                                <div class="flex items-center gap-2">
+                                    <progress class="progress {% if stat.rate >= 90 %}progress-success{% elif stat.rate >= 75 %}progress-warning{% else %}progress-error{% endif %} w-24" value="{{ stat.rate }}" max="100"></progress>
+                                    <span class="text-sm font-semibold">{{ stat.rate }}%</span>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center py-12">
+                <p class="text-base-content/60">No attendance data available</p>
+                <p class="text-base-content/40 mt-2">No students enrolled or no attendance marked in this date range</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

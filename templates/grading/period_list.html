@@ -1,0 +1,105 @@
+{% extends 'dashboard/layouts/dashboard_base.html' %}
+
+{% block title %}Grading Periods{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <div class="flex justify-between items-center">
+        <div>
+            <h1 class="text-3xl font-bold text-base-content">Grading Periods</h1>
+            <p class="text-base-content/60 mt-1">Manage academic terms and grading periods</p>
+        </div>
+        <a href="{% url 'grading:period_create' %}" class="btn btn-primary btn-sm">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+            </svg>
+            Add Grading Period
+        </a>
+    </div>
+
+    <div class="flex gap-2">
+        <a href="?status=all" class="btn btn-sm {% if status == 'all' %}btn-primary{% else %}btn-ghost{% endif %}">All</a>
+        <a href="?status=active" class="btn btn-sm {% if status == 'active' %}btn-primary{% else %}btn-ghost{% endif %}">Active</a>
+        <a href="?status=current" class="btn btn-sm {% if status == 'current' %}btn-primary{% else %}btn-ghost{% endif %}">Current</a>
+    </div>
+
+    <div class="card bg-base-100 shadow-xl">
+        <div class="card-body">
+            <div class="overflow-x-auto">
+                <table class="table table-zebra">
+                    <thead>
+                        <tr>
+                            <th>Academic Year</th>
+                            <th>Term</th>
+                            <th>Period</th>
+                            <th>Grade Entry Deadline</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for period in periods %}
+                        <tr>
+                            <td class="font-semibold">{{ period.academic_year }}</td>
+                            <td><span class="badge badge-outline">{{ period.get_term_display }}</span></td>
+                            <td class="text-sm">
+                                {{ period.start_date|date:"M d, Y" }} - {{ period.end_date|date:"M d, Y" }}
+                            </td>
+                            <td class="text-sm">{{ period.grade_entry_deadline|date:"M d, Y" }}</td>
+                            <td>
+                                <div class="flex gap-1">
+                                    {% if period.is_current %}
+                                    <span class="badge badge-success badge-sm">Current</span>
+                                    {% endif %}
+                                    {% if period.is_active %}
+                                    <span class="badge badge-info badge-sm">Active</span>
+                                    {% else %}
+                                    <span class="badge badge-ghost badge-sm">Inactive</span>
+                                    {% endif %}
+                                </div>
+                            </td>
+                            <td>
+                                <div class="dropdown dropdown-end">
+                                    <label tabindex="0" class="btn btn-ghost btn-xs">
+                                        Actions
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                        </svg>
+                                    </label>
+                                    <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52">
+                                        <li><a href="{% url 'grading:period_detail' period.id %}">View Details</a></li>
+                                        <li><a href="{% url 'grading:period_update' period.id %}">Edit</a></li>
+                                        {% if not period.is_current %}
+                                        <li>
+                                            <form method="post" action="{% url 'grading:set_current_period' period.id %}">
+                                                {% csrf_token %}
+                                                <button type="submit" class="w-full text-left">Set as Current</button>
+                                            </form>
+                                        </li>
+                                        {% endif %}
+                                        <li>
+                                            <button class="text-error"
+                                                    hx-delete="{% url 'grading:period_delete' period.id %}"
+                                                    hx-confirm="Delete this grading period? This action cannot be undone.">
+                                                Delete
+                                            </button>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="text-center py-12">
+                                <h3 class="text-xl font-semibold text-base-content/60">No grading periods found</h3>
+                                <p class="text-base-content/40 mt-2">Create your first grading period to get started</p>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

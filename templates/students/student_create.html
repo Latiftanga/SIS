@@ -1,0 +1,208 @@
+{% extends 'dashboard/layouts/dashboard_base.html' %}
+
+{% block title %}Add New Student{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+    <!-- Header -->
+    <div class="mb-6">
+        <div class="flex items-center justify-between">
+            <div>
+                <h1 class="text-2xl font-bold">Add New Student</h1>
+                <p class="text-base-content/60 text-sm mt-1">Fill in the student information below</p>
+            </div>
+            <a href="{% url 'students:list' %}" class="btn btn-ghost btn-sm">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+                Cancel
+            </a>
+        </div>
+    </div>
+
+    <!-- Form Card -->
+    <div class="card bg-base-100 shadow-xl">
+        <div class="card-body">
+            <form method="post" enctype="multipart/form-data" action="{% url 'students:create' %}" class="space-y-4">
+                {% csrf_token %}
+
+                {% if form.non_field_errors %}
+                <div class="alert alert-error text-sm">
+                    {{ form.non_field_errors.0 }}
+                </div>
+                {% endif %}
+
+                <!-- Personal Information -->
+                <div class="space-y-3">
+                    <h4 class="font-semibold text-base-content">Personal Information</h4>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="form-control">
+                            <label class="label"><span class="label-text">First Name <span class="text-error">*</span></span></label>
+                            {{ form.first_name }}
+                            {% if form.first_name.errors %}<div class="label"><span class="label-text-alt text-error">{{ form.first_name.errors.0 }}</span></div>{% endif %}
+                        </div>
+                        <div class="form-control">
+                            <label class="label"><span class="label-text">Last Name <span class="text-error">*</span></span></label>
+                            {{ form.last_name }}
+                            {% if form.last_name.errors %}<div class="label"><span class="label-text-alt text-error">{{ form.last_name.errors.0 }}</span></div>{% endif %}
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="form-control">
+                            <label class="label"><span class="label-text">Other Names</span></label>
+                            {{ form.other_names }}
+                        </div>
+                        <div class="form-control">
+                            <label class="label"><span class="label-text">Gender <span class="text-error">*</span></span></label>
+                            {{ form.gender }}
+                            {% if form.gender.errors %}<div class="label"><span class="label-text-alt text-error">{{ form.gender.errors.0 }}</span></div>{% endif %}
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="form-control">
+                            <label class="label"><span class="label-text">Date of Birth <span class="text-error">*</span></span></label>
+                            {{ form.date_of_birth }}
+                            {% if form.date_of_birth.errors %}<div class="label"><span class="label-text-alt text-error">{{ form.date_of_birth.errors.0 }}</span></div>{% endif %}
+                        </div>
+                        <div class="form-control">
+                            <label class="label"><span class="label-text">Photo</span></label>
+                            {{ form.photo }}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="divider"></div>
+
+                <!-- Student Information -->
+                <div class="space-y-3">
+                    <h4 class="font-semibold text-base-content">Student Information</h4>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="form-control">
+                            <label class="label"><span class="label-text">Student ID <span class="text-error">*</span></span></label>
+                            {{ form.student_id }}
+                            {% if form.student_id.errors %}<div class="label"><span class="label-text-alt text-error">{{ form.student_id.errors.0 }}</span></div>{% endif %}
+                        </div>
+                        <div class="form-control">
+                            <label class="label"><span class="label-text">Admission Date <span class="text-error">*</span></span></label>
+                            {{ form.admission_date }}
+                            {% if form.admission_date.errors %}<div class="label"><span class="label-text-alt text-error">{{ form.admission_date.errors.0 }}</span></div>{% endif %}
+                        </div>
+                        <div class="form-control">
+                            <label class="label"><span class="label-text">Current Grade <span class="text-error">*</span></span></label>
+                            {{ form.current_grade }}
+                            {% if form.current_grade.errors %}<div class="label"><span class="label-text-alt text-error">{{ form.current_grade.errors.0 }}</span></div>{% endif %}
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="form-control">
+                            <label class="label"><span class="label-text">Email</span></label>
+                            {{ form.email }}
+                            {% if form.email.errors %}<div class="label"><span class="label-text-alt text-error">{{ form.email.errors.0 }}</span></div>{% endif %}
+                        </div>
+                        <div class="form-control">
+                            <label class="label"><span class="label-text">Phone Number</span></label>
+                            {{ form.phone_number }}
+                        </div>
+                    </div>
+
+                    <div class="form-control">
+                        <label class="label"><span class="label-text">Residential Address</span></label>
+                        {{ form.residential_address }}
+                    </div>
+                </div>
+
+                <div class="divider"></div>
+
+                <!-- Guardian Information -->
+                <div class="space-y-3">
+                    <h4 class="font-semibold text-base-content">Guardian Information</h4>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="form-control">
+                            <label class="label"><span class="label-text">Guardian Name <span class="text-error">*</span></span></label>
+                            {{ form.guardian_name }}
+                            {% if form.guardian_name.errors %}<div class="label"><span class="label-text-alt text-error">{{ form.guardian_name.errors.0 }}</span></div>{% endif %}
+                        </div>
+                        <div class="form-control">
+                            <label class="label"><span class="label-text">Relationship</span></label>
+                            {{ form.guardian_relationship }}
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="form-control">
+                            <label class="label"><span class="label-text">Guardian Phone <span class="text-error">*</span></span></label>
+                            {{ form.guardian_phone }}
+                            {% if form.guardian_phone.errors %}<div class="label"><span class="label-text-alt text-error">{{ form.guardian_phone.errors.0 }}</span></div>{% endif %}
+                        </div>
+                        <div class="form-control">
+                            <label class="label"><span class="label-text">Guardian Email</span></label>
+                            {{ form.guardian_email }}
+                        </div>
+                    </div>
+
+                    <div class="form-control">
+                        <label class="label"><span class="label-text">Guardian Address</span></label>
+                        {{ form.guardian_address }}
+                    </div>
+                </div>
+
+                <div class="divider"></div>
+
+                <!-- Emergency & Medical (Collapsible) -->
+                <details class="collapse collapse-arrow bg-base-200">
+                    <summary class="collapse-title font-semibold">Emergency Contact & Medical Information (Optional)</summary>
+                    <div class="collapse-content space-y-3">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="form-control">
+                                <label class="label"><span class="label-text">Emergency Contact Name</span></label>
+                                {{ form.emergency_contact_name }}
+                            </div>
+                            <div class="form-control">
+                                <label class="label"><span class="label-text">Emergency Contact Phone</span></label>
+                                {{ form.emergency_contact_phone }}
+                            </div>
+                        </div>
+                        <div class="form-control">
+                            <label class="label"><span class="label-text">Medical Conditions / Allergies</span></label>
+                            {{ form.medical_conditions }}
+                        </div>
+                    </div>
+                </details>
+
+                <div class="divider"></div>
+
+                <!-- User Account Option -->
+                <div class="space-y-3">
+                    <h4 class="font-semibold text-base-content">System Access (Optional)</h4>
+                    <div class="form-control">
+                        <label class="label cursor-pointer justify-start gap-3">
+                            {{ form.create_user_account }}
+                            <div>
+                                <span class="label-text font-medium">Create user account for this student</span>
+                                <p class="text-xs text-base-content/60 mt-1">Enable student portal access (requires email)</p>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="card-actions justify-end pt-4">
+                    <a href="{% url 'students:list' %}" class="btn btn-ghost">Cancel</a>
+                    <button type="submit" class="btn btn-primary">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                        </svg>
+                        Add Student
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

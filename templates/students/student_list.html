@@ -1,0 +1,156 @@
+{% extends 'dashboard/layouts/dashboard_base.html' %}
+
+{% block title %}Students{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Header -->
+    <div class="flex justify-between items-center relative" style="z-index: 100;">
+        <div>
+            <h1 class="text-3xl font-bold text-base-content">Students</h1>
+            <p class="text-base-content/60 mt-1">Manage student records</p>
+        </div>
+        <div class="flex gap-2">
+            <!-- Bulk Import Button -->
+            <a href="{% url 'students:bulk_import' %}"
+               class="btn btn-outline btn-sm relative"
+               style="z-index: 101;">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                </svg>
+                Bulk Import
+            </a>
+            <!-- Add Student Button -->
+            <a href="{% url 'students:create' %}"
+               class="btn btn-primary btn-sm relative"
+               style="z-index: 101;">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                </svg>
+                Add Student
+            </a>
+        </div>
+    </div>
+
+    <!-- Search and Filters -->
+    <div class="card bg-base-100 shadow-xl">
+        <div class="card-body">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <!-- Search -->
+                <div class="form-control md:col-span-2">
+                    <input type="text"
+                           id="search-input"
+                           name="search"
+                           placeholder="Search by name, student ID, or guardian..."
+                           class="input input-bordered input-sm w-full"
+                           hx-get="{% url 'students:list' %}"
+                           hx-trigger="keyup changed delay:500ms"
+                           hx-target="#students-table"
+                           hx-include="[name='status'], [name='gender'], [name='grade']"
+                           value="{{ search }}" />
+                </div>
+
+                <!-- Status Filter -->
+                <div class="form-control">
+                    <select name="status"
+                            id="status-filter"
+                            class="select select-bordered select-sm w-full"
+                            hx-get="{% url 'students:list' %}"
+                            hx-trigger="change"
+                            hx-target="#students-table"
+                            hx-include="[name='search'], [name='gender'], [name='grade']">
+                        <option value="">All Status</option>
+                        <option value="active" {% if status == 'active' %}selected{% endif %}>Active</option>
+                        <option value="inactive" {% if status == 'inactive' %}selected{% endif %}>Inactive</option>
+                    </select>
+                </div>
+
+                <!-- Gender Filter -->
+                <div class="form-control">
+                    <select name="gender"
+                            id="gender-filter"
+                            class="select select-bordered select-sm w-full"
+                            hx-get="{% url 'students:list' %}"
+                            hx-trigger="change"
+                            hx-target="#students-table"
+                            hx-include="[name='search'], [name='status'], [name='grade']">
+                        <option value="">All Genders</option>
+                        <option value="Male" {% if gender == 'Male' %}selected{% endif %}>Male</option>
+                        <option value="Female" {% if gender == 'Female' %}selected{% endif %}>Female</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Grade Filter (Second Row) -->
+            <div class="form-control mt-2">
+                <select name="grade"
+                        id="grade-filter"
+                        class="select select-bordered select-sm w-full max-w-xs"
+                        hx-get="{% url 'students:list' %}"
+                        hx-trigger="change"
+                        hx-target="#students-table"
+                        hx-include="[name='search'], [name='status'], [name='gender']">
+                    <option value="">All Grades</option>
+                    {% for g in grades %}
+                    <option value="{{ g }}" {% if grade == g %}selected{% endif %}>{{ g }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <!-- Students Table -->
+    <div class="card bg-base-100 shadow-xl">
+        <div class="card-body">
+            <div id="students-table">
+                {% include 'students/partials/student_rows.html' %}
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Function to show success toast
+function showSuccessToast(message) {
+    let toastContainer = document.getElementById('toast-container');
+    if (!toastContainer) {
+        toastContainer = document.createElement('div');
+        toastContainer.id = 'toast-container';
+        toastContainer.className = 'toast toast-top toast-end';
+        document.body.appendChild(toastContainer);
+    }
+
+    const toast = document.createElement('div');
+    toast.className = 'alert alert-success';
+    toast.innerHTML = `
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 shrink-0 stroke-current" fill="none" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        <span>${message}</span>
+    `;
+
+    toastContainer.appendChild(toast);
+
+    setTimeout(function() {
+        toast.style.transition = 'opacity 0.3s';
+        toast.style.opacity = '0';
+        setTimeout(function() {
+            toast.remove();
+        }, 300);
+    }, 4000);
+}
+
+// Handle student deleted event
+document.body.addEventListener('studentDeleted', function() {
+    showSuccessToast('Student deleted successfully!');
+    
+    htmx.ajax('GET', '{% url 'students:list' %}', {
+        target: '#students-table',
+        swap: 'innerHTML'
+    });
+});
+</script>
+{% endblock %}

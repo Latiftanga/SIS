@@ -1,0 +1,139 @@
+{% extends 'dashboard/layouts/dashboard_base.html' %}
+
+{% block title %}Attendance Sessions{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto space-y-6">
+    <!-- Header -->
+    <div class="flex justify-between items-center">
+        <div>
+            <h1 class="text-2xl font-bold">Attendance Sessions</h1>
+            <p class="text-base-content/60 text-sm mt-1">View and manage all attendance sessions</p>
+        </div>
+        <a href="{% url 'classes:class_list' %}" class="btn btn-primary btn-sm">Create New Session</a>
+    </div>
+
+    <!-- Filters -->
+    <div class="card bg-base-100 shadow-xl">
+        <div class="card-body">
+            <h2 class="card-title text-lg">Filters</h2>
+            <form method="get" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div class="form-control">
+                    <label class="label"><span class="label-text">Class</span></label>
+                    <select name="class" class="select select-bordered select-sm">
+                        <option value="">All Classes</option>
+                        {% for class in all_classes %}
+                        <option value="{{ class.id }}" {% if class.id|stringformat:"s" == class_filter %}selected{% endif %}>
+                            {{ class.name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-control">
+                    <label class="label"><span class="label-text">From Date</span></label>
+                    <input type="date" name="date_from" value="{{ date_from }}" class="input input-bordered input-sm">
+                </div>
+                <div class="form-control">
+                    <label class="label"><span class="label-text">To Date</span></label>
+                    <input type="date" name="date_to" value="{{ date_to }}" class="input input-bordered input-sm">
+                </div>
+                <div class="form-control">
+                    <label class="label"><span class="label-text">Type</span></label>
+                    <select name="type" class="select select-bordered select-sm">
+                        <option value="">All Types</option>
+                        <option value="daily" {% if session_type == 'daily' %}selected{% endif %}>Daily</option>
+                        <option value="subject" {% if session_type == 'subject' %}selected{% endif %}>Subject</option>
+                    </select>
+                </div>
+                <div class="form-control col-span-full flex flex-row gap-2 items-end">
+                    <button type="submit" class="btn btn-sm btn-primary">Apply Filters</button>
+                    <a href="{% url 'attendance:session_list' %}" class="btn btn-sm btn-ghost">Clear</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Sessions Table -->
+    <div class="card bg-base-100 shadow-xl">
+        <div class="card-body">
+            <h2 class="card-title">Sessions ({{ sessions.count }})</h2>
+
+            {% if sessions %}
+            <div class="overflow-x-auto">
+                <table class="table table-zebra">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Class</th>
+                            <th>Type</th>
+                            <th>Subject</th>
+                            <th>Students</th>
+                            <th>Attendance Rate</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for session in sessions %}
+                        <tr>
+                            <td>{{ session.date|date:"M d, Y" }}</td>
+                            <td>
+                                <a href="{% url 'classes:class_detail' session.class_obj.id %}" class="link">
+                                    {{ session.class_obj.name }}
+                                </a>
+                            </td>
+                            <td>
+                                {% if session.session_type == 'daily' %}
+                                <span class="badge badge-info badge-xs">Daily</span>
+                                {% else %}
+                                <span class="badge badge-secondary badge-xs">Subject</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if session.subject %}
+                                {{ session.subject.subject.name }}
+                                {% else %}
+                                —
+                                {% endif %}
+                            </td>
+                            <td>{{ session.get_total_students }}</td>
+                            <td>
+                                <div class="flex items-center gap-2">
+                                    <progress class="progress progress-success w-20" value="{{ session.get_attendance_percentage }}" max="100"></progress>
+                                    <span class="text-xs">{{ session.get_attendance_percentage }}%</span>
+                                </div>
+                            </td>
+                            <td>
+                                {% if session.is_finalized %}
+                                <span class="badge badge-success badge-xs">Finalized</span>
+                                {% else %}
+                                <span class="badge badge-warning badge-xs">Draft</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="dropdown dropdown-end">
+                                    <label tabindex="0" class="btn btn-ghost btn-xs">⋮</label>
+                                    <ul tabindex="0" class="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-52 z-10">
+                                        <li><a href="{% url 'attendance:session_detail' session.pk %}">View Details</a></li>
+                                        {% if not session.is_finalized %}
+                                        <li><a href="{% url 'attendance:mark_attendance' session.pk %}">Edit Attendance</a></li>
+                                        <li><a href="{% url 'attendance:session_delete' session.pk %}" class="text-error">Delete</a></li>
+                                        {% endif %}
+                                    </ul>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center py-12">
+                <p class="text-base-content/60">No attendance sessions found</p>
+                <p class="text-base-content/40 mt-2">Try adjusting your filters or create a new session</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

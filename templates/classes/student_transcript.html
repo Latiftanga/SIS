@@ -1,0 +1,184 @@
+{% extends 'dashboard/layouts/dashboard_base.html' %}
+
+{% block title %}Academic Transcript - {{ student.get_full_name }}{% endblock %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto">
+    <!-- Header -->
+    <div class="mb-6">
+        <div class="flex items-center justify-between">
+            <div>
+                <h1 class="text-2xl font-bold">Academic Transcript</h1>
+                <p class="text-base-content/60 text-sm mt-1">Complete enrollment history</p>
+            </div>
+            <a href="{% url 'students:detail' student.id %}" class="btn btn-ghost btn-sm">Back to Student</a>
+        </div>
+    </div>
+
+    <!-- Student Info Card -->
+    <div class="card bg-base-100 shadow-xl mb-6">
+        <div class="card-body">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                    <div class="text-sm text-base-content/60">Student Name</div>
+                    <div class="text-lg font-bold">{{ student.get_full_name }}</div>
+                </div>
+                <div>
+                    <div class="text-sm text-base-content/60">Student ID</div>
+                    <div class="text-lg font-bold">{{ student.student_id }}</div>
+                </div>
+                <div>
+                    <div class="text-sm text-base-content/60">Current Status</div>
+                    <div>
+                        {% if current_enrollment %}
+                        <span class="badge badge-success">
+                            Enrolled in {{ current_enrollment.class_obj.name }}
+                        </span>
+                        {% else %}
+                        <span class="badge badge-ghost">Not Currently Enrolled</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+                <div>
+                    <div class="text-sm text-base-content/60">Date of Birth</div>
+                    <div class="font-semibold">{{ student.date_of_birth|date:"M d, Y" }}</div>
+                </div>
+                <div>
+                    <div class="text-sm text-base-content/60">Admission Date</div>
+                    <div class="font-semibold">{{ student.admission_date|date:"M d, Y" }}</div>
+                </div>
+                <div>
+                    <div class="text-sm text-base-content/60">Gender</div>
+                    <div class="font-semibold">{{ student.gender }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Enrollment History -->
+    <div class="card bg-base-100 shadow-xl">
+        <div class="card-body">
+            <h2 class="card-title mb-4">Enrollment History</h2>
+
+            {% if enrollments %}
+            <div class="overflow-x-auto">
+                <table class="table table-zebra">
+                    <thead>
+                        <tr>
+                            <th>Academic Year</th>
+                            <th>Class</th>
+                            <th>Grade Level</th>
+                            <th>Enrollment Date</th>
+                            <th>Completion Date</th>
+                            <th>Status</th>
+                            <th>Result</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for enrollment in enrollments %}
+                        <tr {% if enrollment.is_active %}class="bg-primary/10"{% endif %}>
+                            <td class="font-semibold">{{ enrollment.academic_year }}</td>
+                            <td>
+                                <a href="{% url 'classes:class_detail' enrollment.class_obj.id %}" class="link">
+                                    {{ enrollment.class_obj.name }}
+                                </a>
+                            </td>
+                            <td>{{ enrollment.class_obj.grade_level }}</td>
+                            <td>{{ enrollment.enrollment_date|date:"M d, Y" }}</td>
+                            <td>
+                                {% if enrollment.completion_date %}
+                                {{ enrollment.completion_date|date:"M d, Y" }}
+                                {% else %}
+                                <span class="text-base-content/40">—</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if enrollment.status == 'enrolled' %}
+                                <span class="badge badge-success badge-sm">Enrolled</span>
+                                {% elif enrollment.status == 'completed' %}
+                                <span class="badge badge-info badge-sm">Completed</span>
+                                {% elif enrollment.status == 'withdrawn' %}
+                                <span class="badge badge-error badge-sm">Withdrawn</span>
+                                {% elif enrollment.status == 'transferred' %}
+                                <span class="badge badge-warning badge-sm">Transferred</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if enrollment.final_result == 'promoted' %}
+                                <span class="badge badge-success badge-sm">✓ Promoted</span>
+                                {% elif enrollment.final_result == 'repeated' %}
+                                <span class="badge badge-warning badge-sm">⟳ Repeated</span>
+                                {% elif enrollment.final_result == 'graduated' %}
+                                <span class="badge badge-accent badge-sm">🎓 Graduated</span>
+                                {% elif enrollment.final_result == 'transferred' %}
+                                <span class="badge badge-info badge-sm">→ Transferred</span>
+                                {% elif enrollment.final_result == 'withdrawn' %}
+                                <span class="badge badge-error badge-sm">✗ Withdrawn</span>
+                                {% elif enrollment.final_result == 'pending' %}
+                                <span class="badge badge-ghost badge-sm">Pending</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Summary Stats -->
+            <div class="stats stats-horizontal shadow mt-6 w-full">
+                <div class="stat">
+                    <div class="stat-title">Total Enrollments</div>
+                    <div class="stat-value text-primary">{{ enrollments.count }}</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-title">Promotions</div>
+                    <div class="stat-value text-success">
+                        {{ enrollments|length|add:"-1" }}
+                    </div>
+                </div>
+                <div class="stat">
+                    <div class="stat-title">Years in School</div>
+                    <div class="stat-value text-accent">
+                        {% widthratio enrollments.count 1 1 %}
+                    </div>
+                </div>
+            </div>
+
+            {% else %}
+            <div class="text-center py-12">
+                <h3 class="text-xl font-semibold text-base-content/60">No Enrollment History</h3>
+                <p class="text-base-content/40 mt-2">This student has no enrollment records</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Guardian Information -->
+    <div class="card bg-base-100 shadow-xl mt-6">
+        <div class="card-body">
+            <h2 class="card-title mb-4">Guardian Information</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <div class="text-sm text-base-content/60">Guardian Name</div>
+                    <div class="font-semibold">{{ student.guardian_name }}</div>
+                </div>
+                <div>
+                    <div class="text-sm text-base-content/60">Relationship</div>
+                    <div class="font-semibold">{{ student.guardian_relationship }}</div>
+                </div>
+                <div>
+                    <div class="text-sm text-base-content/60">Phone</div>
+                    <div class="font-semibold">{{ student.guardian_phone }}</div>
+                </div>
+                <div>
+                    <div class="text-sm text-base-content/60">Email</div>
+                    <div class="font-semibold">{{ student.guardian_email|default:"—" }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

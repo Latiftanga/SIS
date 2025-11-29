@@ -1,0 +1,177 @@
+{% extends 'dashboard/layouts/dashboard_base.html' %}
+
+{% block title %}{{ class.name }}{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto space-y-6">
+    <!-- Header -->
+    <div class="flex justify-between items-center">
+        <div>
+            <h1 class="text-3xl font-bold">{{ class.name }}</h1>
+            <p class="text-base-content/60 mt-1">
+                {{ class.grade_level }}{% if class.section %} - {{ class.section }}{% endif %} |
+                Academic Year: {{ class.academic_year }}
+            </p>
+        </div>
+        <div class="flex gap-2">
+            <a href="{% url 'attendance:session_create' class.id %}" class="btn btn-primary btn-sm">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                </svg>
+                Mark Attendance
+            </a>
+            <a href="{% url 'attendance:class_report' class.id %}" class="btn btn-outline btn-sm">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                Attendance Report
+            </a>
+            <a href="{% url 'classes:class_promote' class.id %}" class="btn btn-accent btn-sm">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18" />
+                </svg>
+                Promote Class
+            </a>
+            <a href="{% url 'classes:class_edit' class.id %}" class="btn btn-outline btn-sm">Edit Class</a>
+            <a href="{% url 'classes:class_list' %}" class="btn btn-ghost btn-sm">Back</a>
+        </div>
+    </div>
+
+    <!-- Class Info Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div class="stat bg-base-100 shadow-xl rounded-box">
+            <div class="stat-title">Students</div>
+            <div class="stat-value text-primary">{{ student_count }}</div>
+            <div class="stat-desc">{{ available_capacity }} slots available</div>
+        </div>
+        <div class="stat bg-base-100 shadow-xl rounded-box">
+            <div class="stat-title">Capacity</div>
+            <div class="stat-value">{{ class.capacity }}</div>
+        </div>
+        <div class="stat bg-base-100 shadow-xl rounded-box">
+            <div class="stat-title">Class Teacher</div>
+            <div class="stat-value text-sm">{{ class.class_teacher.get_full_name|default:"Not assigned" }}</div>
+        </div>
+        <div class="stat bg-base-100 shadow-xl rounded-box">
+            <div class="stat-title">Room</div>
+            <div class="stat-value text-sm">{{ class.room_number|default:"Not assigned" }}</div>
+        </div>
+    </div>
+
+    <!-- Tabs -->
+    <div role="tablist" class="tabs tabs-boxed bg-base-100 shadow-xl">
+        <input type="radio" name="class_tabs" role="tab" class="tab" aria-label="Students" checked />
+        <div role="tabpanel" class="tab-content p-6">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-bold">Enrolled Students ({{ student_count }})</h2>
+                <a href="{% url 'classes:enrollment_bulk' class.id %}" class="btn btn-primary btn-sm">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+                    </svg>
+                    Enroll Students
+                </a>
+            </div>
+            
+            {% if enrollments %}
+            <div class="overflow-x-auto">
+                <table class="table table-zebra">
+                    <thead>
+                        <tr>
+                            <th>Roll No.</th>
+                            <th>Student</th>
+                            <th>Student ID</th>
+                            <th>Enrollment Date</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for enrollment in enrollments %}
+                        <tr>
+                            <td>{{ enrollment.roll_number|default:"—" }}</td>
+                            <td>
+                                <a href="{% url 'students:detail' enrollment.student.id %}" class="link">
+                                    {{ enrollment.student.get_full_name }}
+                                </a>
+                            </td>
+                            <td>{{ enrollment.student.student_id }}</td>
+                            <td>{{ enrollment.enrollment_date|date:"M d, Y" }}</td>
+                            <td>
+                                {% if enrollment.status == 'enrolled' %}
+                                <span class="badge badge-success badge-xs">Enrolled</span>
+                                {% else %}
+                                <span class="badge badge-ghost badge-xs">{{ enrollment.get_status_display }}</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="flex gap-2">
+                                    <a href="{% url 'classes:student_transcript' enrollment.student.id %}"
+                                       class="btn btn-ghost btn-xs">
+                                        Transcript
+                                    </a>
+                                    <button class="btn btn-ghost btn-xs text-error"
+                                            hx-delete="{% url 'classes:enrollment_delete' enrollment.id %}"
+                                            hx-confirm="Remove this student from the class?">
+                                        Remove
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center py-12">
+                <p class="text-base-content/60">No students enrolled yet</p>
+            </div>
+            {% endif %}
+        </div>
+
+        <input type="radio" name="class_tabs" role="tab" class="tab" aria-label="Subjects" />
+        <div role="tabpanel" class="tab-content p-6">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-bold">Assigned Subjects</h2>
+                <a href="{% url 'classes:class_subject_create' class.id %}" class="btn btn-primary btn-sm">Assign Subject</a>
+            </div>
+            
+            {% if subjects %}
+            <div class="overflow-x-auto">
+                <table class="table table-zebra">
+                    <thead>
+                        <tr>
+                            <th>Subject</th>
+                            <th>Code</th>
+                            <th>Teacher</th>
+                            <th>Periods/Week</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for cs in subjects %}
+                        <tr>
+                            <td>{{ cs.subject.name }}</td>
+                            <td>{{ cs.subject.code }}</td>
+                            <td>{{ cs.teacher.get_full_name|default:"Not assigned" }}</td>
+                            <td>{{ cs.periods_per_week }}</td>
+                            <td>
+                                <button class="btn btn-ghost btn-xs text-error"
+                                        hx-delete="{% url 'classes:class_subject_delete' cs.id %}"
+                                        hx-confirm="Remove this subject from the class?">
+                                    Remove
+                                </button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center py-12">
+                <p class="text-base-content/60">No subjects assigned yet</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,152 @@
+{% extends 'dashboard/layouts/dashboard_base.html' %}
+
+{% block title %}Mark Attendance{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto">
+    <div class="mb-6">
+        <div class="flex items-center justify-between">
+            <div>
+                <h1 class="text-2xl font-bold">Mark Attendance</h1>
+                <p class="text-base-content/60 text-sm mt-1">
+                    {{ session.class_obj.name }} | {{ session.date|date:"l, F d, Y" }}
+                    {% if session.subject %} | {{ session.subject.subject.name }}{% endif %}
+                </p>
+            </div>
+            <a href="{% url 'attendance:session_detail' session.pk %}" class="btn btn-ghost btn-sm">Cancel</a>
+        </div>
+    </div>
+
+    <div class="card bg-base-100 shadow-xl">
+        <div class="card-body">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="card-title">Students ({{ students|length }})</h2>
+                <div class="flex gap-2">
+                    <button type="button" id="mark-all-present" class="btn btn-sm btn-success">
+                        Mark All Present
+                    </button>
+                    <button type="button" id="mark-all-absent" class="btn btn-sm btn-error">
+                        Mark All Absent
+                    </button>
+                </div>
+            </div>
+
+            <form method="post" hx-boost="false">
+                {% csrf_token %}
+
+                <div class="overflow-x-auto">
+                    <table class="table table-zebra">
+                        <thead>
+                            <tr>
+                                <th>Roll No.</th>
+                                <th>Student</th>
+                                <th>Student ID</th>
+                                <th>Status <span class="text-error">*</span></th>
+                                <th>Time In</th>
+                                <th>Remarks</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for enrollment in enrollments %}
+                            {% with student=enrollment.student record=enrollment.existing_record %}
+                            <tr data-student-id="{{ student.id }}">
+                                <td>{{ enrollment.roll_number|default:"—" }}</td>
+                                <td class="font-semibold">{{ student.get_full_name }}</td>
+                                <td><span class="badge badge-outline">{{ student.student_id }}</span></td>
+                                <td>
+                                    <select name="status_{{ student.id }}" class="select select-bordered select-xs" required>
+                                        <option value="present" {% if record and record.status == 'present' %}selected{% elif not record %}selected{% endif %}>✓ Present</option>
+                                        <option value="absent" {% if record and record.status == 'absent' %}selected{% endif %}>✗ Absent</option>
+                                        <option value="late" {% if record and record.status == 'late' %}selected{% endif %}>⏰ Late</option>
+                                        <option value="excused" {% if record and record.status == 'excused' %}selected{% endif %}>Excused</option>
+                                    </select>
+                                </td>
+                                <td>
+                                    <input type="time" name="time_in_{{ student.id }}" class="input input-bordered input-xs"
+                                           value="{% if record and record.time_in %}{{ record.time_in|time:'H:i' }}{% endif %}">
+                                </td>
+                                <td>
+                                    <input type="text" name="remarks_{{ student.id }}" class="input input-bordered input-xs"
+                                           placeholder="Optional notes..."
+                                           value="{% if record %}{{ record.remarks }}{% endif %}">
+                                </td>
+                            </tr>
+                            {% endwith %}
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                {% if not session.is_finalized %}
+                <div class="alert alert-info text-sm mt-4">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <div>
+                        <div class="font-semibold">Save or Finalize</div>
+                        <div>You can save as draft and edit later, or finalize to lock this attendance session.</div>
+                    </div>
+                </div>
+
+                <div class="card-actions justify-end pt-4">
+                    <a href="{% url 'attendance:session_detail' session.pk %}" class="btn btn-ghost">Cancel</a>
+                    <button type="submit" name="save" class="btn btn-primary">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
+                        </svg>
+                        Save as Draft
+                    </button>
+                    <button type="submit" name="finalize" class="btn btn-success">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        Save & Finalize
+                    </button>
+                </div>
+                {% else %}
+                <div class="alert alert-warning text-sm mt-4">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                    <div>This attendance session is finalized and cannot be edited.</div>
+                </div>
+                {% endif %}
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Mark all present
+        document.getElementById('mark-all-present').addEventListener('click', function() {
+            document.querySelectorAll('[name^="status_"]').forEach(select => {
+                select.value = 'present';
+            });
+        });
+
+        // Mark all absent
+        document.getElementById('mark-all-absent').addEventListener('click', function() {
+            document.querySelectorAll('[name^="status_"]').forEach(select => {
+                select.value = 'absent';
+            });
+        });
+
+        // Show/hide time_in field based on status
+        document.querySelectorAll('[name^="status_"]').forEach(select => {
+            select.addEventListener('change', function() {
+                const studentId = this.name.replace('status_', '');
+                const timeField = document.querySelector(`[name="time_in_${studentId}"]`);
+                if (timeField) {
+                    timeField.disabled = (this.value !== 'late');
+                    if (this.value !== 'late') {
+                        timeField.value = '';
+                    }
+                }
+            });
+            // Initialize on load
+            select.dispatchEvent(new Event('change'));
+        });
+    });
+</script>
+{% endblock %}

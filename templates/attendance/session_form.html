@@ -1,0 +1,129 @@
+{% extends 'dashboard/layouts/dashboard_base.html' %}
+
+{% block title %}{{ action }} Attendance Session{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+    <div class="mb-6">
+        <div class="flex items-center justify-between">
+            <div>
+                <h1 class="text-2xl font-bold">{{ action }} Attendance Session</h1>
+                <p class="text-base-content/60 text-sm mt-1">For {{ class.name }}</p>
+            </div>
+            <a href="{% url 'classes:class_detail' class.id %}" class="btn btn-ghost btn-sm">Cancel</a>
+        </div>
+    </div>
+
+    <div class="card bg-base-100 shadow-xl">
+        <div class="card-body">
+            <form method="post" class="space-y-4" hx-boost="false">
+                {% csrf_token %}
+
+                <!-- Date -->
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text">Date <span class="text-error">*</span></span>
+                    </label>
+                    {{ form.date }}
+                    {% if form.date.errors %}
+                    <div class="label">
+                        <span class="label-text-alt text-error">{{ form.date.errors.0 }}</span>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Session Type -->
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text">Session Type <span class="text-error">*</span></span>
+                    </label>
+                    {{ form.session_type }}
+                    {% if form.session_type.errors %}
+                    <div class="label">
+                        <span class="label-text-alt text-error">{{ form.session_type.errors.0 }}</span>
+                    </div>
+                    {% endif %}
+                    <div class="label">
+                        <span class="label-text-alt">Choose daily for whole-day attendance or subject for specific period</span>
+                    </div>
+                </div>
+
+                <!-- Subject (conditional) -->
+                <div class="form-control" id="subject-field">
+                    <label class="label">
+                        <span class="label-text">Subject</span>
+                    </label>
+                    {{ form.subject }}
+                    {% if form.subject.errors %}
+                    <div class="label">
+                        <span class="label-text-alt text-error">{{ form.subject.errors.0 }}</span>
+                    </div>
+                    {% endif %}
+                    <div class="label">
+                        <span class="label-text-alt">Required for subject-specific attendance</span>
+                    </div>
+                </div>
+
+                <!-- Period Number (conditional) -->
+                <div class="form-control" id="period-field">
+                    <label class="label">
+                        <span class="label-text">Period Number</span>
+                    </label>
+                    {{ form.period_number }}
+                    {% if form.period_number.errors %}
+                    <div class="label">
+                        <span class="label-text-alt text-error">{{ form.period_number.errors.0 }}</span>
+                    </div>
+                    {% endif %}
+                    <div class="label">
+                        <span class="label-text-alt">Optional: Period number (1-8)</span>
+                    </div>
+                </div>
+
+                <!-- Notes -->
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text">Notes</span>
+                    </label>
+                    {{ form.notes }}
+                    {% if form.notes.errors %}
+                    <div class="label">
+                        <span class="label-text-alt text-error">{{ form.notes.errors.0 }}</span>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Form-level errors -->
+                {% if form.non_field_errors %}
+                <div class="alert alert-error">
+                    {{ form.non_field_errors.0 }}
+                </div>
+                {% endif %}
+
+                <!-- Actions -->
+                <div class="card-actions justify-end pt-4">
+                    <a href="{% url 'classes:class_detail' class.id %}" class="btn btn-ghost">Cancel</a>
+                    <button type="submit" class="btn btn-primary">{{ action }} Session</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const sessionTypeField = document.querySelector('[name="session_type"]');
+        const subjectField = document.getElementById('subject-field');
+        const periodField = document.getElementById('period-field');
+
+        function toggleFields() {
+            const isSubjectType = sessionTypeField.value === 'subject';
+            subjectField.style.display = isSubjectType ? 'block' : 'none';
+            periodField.style.display = isSubjectType ? 'block' : 'none';
+        }
+
+        sessionTypeField.addEventListener('change', toggleFields);
+        toggleFields(); // Initialize on page load
+    });
+</script>
+{% endblock %}

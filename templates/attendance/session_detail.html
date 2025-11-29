@@ -1,0 +1,165 @@
+{% extends 'dashboard/layouts/dashboard_base.html' %}
+
+{% block title %}Attendance Session Details{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto space-y-6">
+    <!-- Header -->
+    <div class="flex justify-between items-center">
+        <div>
+            <h1 class="text-2xl font-bold">Attendance Session Details</h1>
+            <p class="text-base-content/60 text-sm mt-1">
+                {{ session.class_obj.name }} | {{ session.date|date:"l, F d, Y" }}
+            </p>
+        </div>
+        <div class="flex gap-2">
+            {% if not session.is_finalized %}
+            <a href="{% url 'attendance:mark_attendance' session.pk %}" class="btn btn-primary btn-sm">Edit Attendance</a>
+            {% endif %}
+            <a href="{% url 'attendance:session_list' %}" class="btn btn-ghost btn-sm">Back to List</a>
+        </div>
+    </div>
+
+    <!-- Session Info -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div class="stat bg-base-100 shadow-xl rounded-box">
+            <div class="stat-title">Total Students</div>
+            <div class="stat-value text-primary">{{ session.get_total_students }}</div>
+        </div>
+        <div class="stat bg-base-100 shadow-xl rounded-box">
+            <div class="stat-title">Present</div>
+            <div class="stat-value text-success">{{ session.get_present_count }}</div>
+        </div>
+        <div class="stat bg-base-100 shadow-xl rounded-box">
+            <div class="stat-title">Absent</div>
+            <div class="stat-value text-error">{{ session.get_absent_count }}</div>
+        </div>
+        <div class="stat bg-base-100 shadow-xl rounded-box">
+            <div class="stat-title">Attendance Rate</div>
+            <div class="stat-value">{{ session.get_attendance_percentage }}%</div>
+        </div>
+    </div>
+
+    <!-- Session Details Card -->
+    <div class="card bg-base-100 shadow-xl">
+        <div class="card-body">
+            <h2 class="card-title">Session Information</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <div class="text-sm text-base-content/60">Class</div>
+                    <div class="font-semibold">{{ session.class_obj.name }}</div>
+                </div>
+                <div>
+                    <div class="text-sm text-base-content/60">Date</div>
+                    <div class="font-semibold">{{ session.date|date:"F d, Y" }}</div>
+                </div>
+                <div>
+                    <div class="text-sm text-base-content/60">Session Type</div>
+                    <div>
+                        {% if session.session_type == 'daily' %}
+                        <span class="badge badge-info">Daily Attendance</span>
+                        {% else %}
+                        <span class="badge badge-secondary">Subject Attendance</span>
+                        {% endif %}
+                    </div>
+                </div>
+                {% if session.subject %}
+                <div>
+                    <div class="text-sm text-base-content/60">Subject</div>
+                    <div class="font-semibold">{{ session.subject.subject.name }}</div>
+                </div>
+                {% endif %}
+                {% if session.period_number %}
+                <div>
+                    <div class="text-sm text-base-content/60">Period Number</div>
+                    <div class="font-semibold">Period {{ session.period_number }}</div>
+                </div>
+                {% endif %}
+                <div>
+                    <div class="text-sm text-base-content/60">Status</div>
+                    <div>
+                        {% if session.is_finalized %}
+                        <span class="badge badge-success">Finalized</span>
+                        {% else %}
+                        <span class="badge badge-warning">Draft</span>
+                        {% endif %}
+                    </div>
+                </div>
+                {% if session.marked_by %}
+                <div>
+                    <div class="text-sm text-base-content/60">Marked By</div>
+                    <div class="font-semibold">{{ session.marked_by.get_full_name }}</div>
+                </div>
+                {% endif %}
+            </div>
+            {% if session.notes %}
+            <div class="mt-4">
+                <div class="text-sm text-base-content/60">Notes</div>
+                <div class="mt-1">{{ session.notes }}</div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Attendance Records -->
+    <div class="card bg-base-100 shadow-xl">
+        <div class="card-body">
+            <h2 class="card-title">Attendance Records</h2>
+
+            {% if records %}
+            <div class="overflow-x-auto">
+                <table class="table table-zebra">
+                    <thead>
+                        <tr>
+                            <th>Roll No.</th>
+                            <th>Student</th>
+                            <th>Student ID</th>
+                            <th>Status</th>
+                            <th>Time In</th>
+                            <th>Remarks</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for record in records %}
+                        <tr>
+                            <td>{{ record.enrollment.roll_number|default:"—" }}</td>
+                            <td>
+                                <a href="{% url 'students:detail' record.student.id %}" class="link">
+                                    {{ record.student.get_full_name }}
+                                </a>
+                            </td>
+                            <td><span class="badge badge-outline">{{ record.student.student_id }}</span></td>
+                            <td>
+                                {% if record.status == 'present' %}
+                                <span class="badge badge-success badge-sm">✓ Present</span>
+                                {% elif record.status == 'absent' %}
+                                <span class="badge badge-error badge-sm">✗ Absent</span>
+                                {% elif record.status == 'late' %}
+                                <span class="badge badge-warning badge-sm">⏰ Late</span>
+                                {% elif record.status == 'excused' %}
+                                <span class="badge badge-info badge-sm">Excused</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if record.time_in %}
+                                {{ record.time_in|time:"g:i A" }}
+                                {% else %}
+                                —
+                                {% endif %}
+                            </td>
+                            <td class="text-sm">{{ record.remarks|default:"—" }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center py-12">
+                <p class="text-base-content/60">No attendance records yet</p>
+                <p class="text-base-content/40 mt-2">Click "Edit Attendance" to mark attendance</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
