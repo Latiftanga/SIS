@@ -2,6 +2,110 @@
 
 {% block title %}Teachers{% endblock %}
 
+{% block extra_css %}
+<style>
+    /* Smooth transitions for all interactive elements */
+    .btn, .card, .stats, .table tbody tr {
+        transition: all 0.2s ease-in-out;
+    }
+
+    /* Hover effects for table rows */
+    .table tbody tr:hover {
+        transform: scale(1.01);
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Button hover effects */
+    .btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Stats card animation */
+    .stats {
+        animation: fadeInUp 0.5s ease-out;
+    }
+
+    /* Card animations */
+    .card {
+        animation: fadeInUp 0.6s ease-out;
+    }
+
+    /* Fade in up animation */
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* Modal animations */
+    .modal-box {
+        animation: modalSlideIn 0.3s ease-out;
+    }
+
+    @keyframes modalSlideIn {
+        from {
+            opacity: 0;
+            transform: scale(0.95);
+        }
+        to {
+            opacity: 1;
+            transform: scale(1);
+        }
+    }
+
+    /* Loading spinner animation */
+    .loading {
+        animation: spin 1s linear infinite;
+    }
+
+    /* Avatar pulse effect */
+    .avatar {
+        transition: transform 0.2s ease-in-out;
+    }
+
+    .avatar:hover {
+        transform: scale(1.1);
+    }
+
+    /* Badge animations */
+    .badge {
+        transition: all 0.2s ease-in-out;
+    }
+
+    .badge:hover {
+        transform: scale(1.05);
+    }
+
+    /* Smooth input focus effects */
+    .input:focus, .select:focus {
+        transform: scale(1.02);
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+
+    /* Toast animation */
+    .toast {
+        animation: slideInRight 0.3s ease-out;
+    }
+
+    @keyframes slideInRight {
+        from {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="space-y-6">
     <!-- Header -->
@@ -12,25 +116,34 @@
         </div>
         <div class="flex gap-2">
             <!-- Bulk Import Button -->
-            <a href="{% url 'teachers:bulk_import' %}"
-               class="btn btn-outline btn-sm relative"
-               style="z-index: 101;">
+            <button type="button"
+                    class="btn btn-outline btn-sm relative"
+                    style="z-index: 101;"
+                    hx-get="{% url 'teachers:bulk_import' %}"
+                    hx-target="#teacher-form-container"
+                    hx-swap="innerHTML">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
                 </svg>
                 Bulk Import
-            </a>
+            </button>
             <!-- Add Teacher Button -->
-            <a href="{% url 'teachers:create' %}"
-               class="btn btn-primary btn-sm relative"
-               style="z-index: 101;">
+            <button type="button"
+                    class="btn btn-primary btn-sm relative"
+                    style="z-index: 101;"
+                    hx-get="{% url 'teachers:create' %}"
+                    hx-target="#teacher-form-container"
+                    hx-swap="innerHTML">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                 </svg>
                 Add Teacher
-            </a>
+            </button>
         </div>
     </div>
+
+    <!-- Statistics Cards -->
+    {% include 'teachers/partials/teacher_statistics.html' %}
 
     <!-- Search and Filters -->
     <div class="card bg-base-100 shadow-xl">
@@ -83,8 +196,13 @@
         </div>
     </div>
 
+    <!-- Teacher Form/Detail Container (Hidden by default, shown via HTMX) -->
+    <div id="teacher-form-container" class="hidden">
+        <!-- Form content will be loaded here via HTMX -->
+    </div>
+
     <!-- Teachers Table -->
-    <div class="card bg-base-100 shadow-xl">
+    <div id="teachers-table-container" class="card bg-base-100 shadow-xl">
         <div class="card-body">
             <div id="teachers-table">
                 {% include 'teachers/partials/teacher_rows.html' %}
@@ -93,6 +211,7 @@
     </div>
 
 </div>
+
 {% endblock %}
 
 {% block extra_js %}
@@ -104,13 +223,13 @@ function showSuccessToast(message) {
     if (!toastContainer) {
         toastContainer = document.createElement('div');
         toastContainer.id = 'toast-container';
-        toastContainer.className = 'toast toast-top toast-end';
+        toastContainer.className = 'toast toast-top toast-end z-[9999]';
         document.body.appendChild(toastContainer);
     }
 
     // Create toast alert
     const toast = document.createElement('div');
-    toast.className = 'alert alert-success';
+    toast.className = 'alert alert-success shadow-lg';
     toast.innerHTML = `
         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 shrink-0 stroke-current" fill="none" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -130,18 +249,70 @@ function showSuccessToast(message) {
     }, 4000);
 }
 
+// Handle teacher created event - DOM is already settled, no setTimeout needed
+document.body.addEventListener('teacherCreated', function(event) {
+    showSuccessToast('Teacher created successfully!');
+    document.getElementById('teachers-table-container').classList.remove('hidden');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+});
+
+// Handle teacher updated event - DOM is already settled, no setTimeout needed
+document.body.addEventListener('teacherUpdated', function(event) {
+    showSuccessToast('Teacher updated successfully!');
+    document.getElementById('teachers-table-container').classList.remove('hidden');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+});
+
 // Handle teacher deleted event
 document.body.addEventListener('teacherDeleted', function() {
-    console.log('Teacher deleted event triggered');
-
-    // Show success message
     showSuccessToast('Teacher deleted successfully!');
+});
 
-    // Refresh the entire list
-    htmx.ajax('GET', '{% url 'teachers:list' %}', {
-        target: '#teachers-table',
-        swap: 'innerHTML'
-    });
+// Handle bulk import completed event - DOM is already settled, no setTimeout needed
+document.body.addEventListener('bulkImportCompleted', function(event) {
+    showSuccessToast('Bulk import completed successfully!');
+    document.getElementById('teachers-table-container').classList.remove('hidden');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+});
+
+// Handle form loaded event - show form, hide table
+document.body.addEventListener('formLoaded', function() {
+    document.getElementById('teacher-form-container').classList.remove('hidden');
+    document.getElementById('teachers-table-container').classList.add('hidden');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+});
+
+// Handle form cancelled event - hide form, show table
+document.body.addEventListener('formCancelled', function() {
+    document.getElementById('teacher-form-container').classList.add('hidden');
+    document.getElementById('teachers-table-container').classList.remove('hidden');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+});
+
+// Add loading indicator for HTMX requests
+document.body.addEventListener('htmx:beforeRequest', function(evt) {
+    if (evt.detail.target.id === 'teacher-form-container') {
+        evt.detail.target.innerHTML = `
+            <div class="card bg-base-100 shadow-xl">
+                <div class="card-body flex items-center justify-center py-12">
+                    <span class="loading loading-spinner loading-lg"></span>
+                </div>
+            </div>
+        `;
+    }
+});
+
+// After HTMX completes OOB swaps, ensure table is visible if form is hidden
+document.body.addEventListener('htmx:afterSwap', function(evt) {
+    const formContainer = document.getElementById('teacher-form-container');
+    const tableContainer = document.getElementById('teachers-table-container');
+
+    // If form is hidden and table is hidden, show the table
+    if (formContainer && tableContainer) {
+        if (formContainer.classList.contains('hidden') && tableContainer.classList.contains('hidden')) {
+            tableContainer.classList.remove('hidden');
+        }
+    }
 });
 </script>
 {% endblock %}

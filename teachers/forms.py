@@ -211,16 +211,17 @@ class TeacherCreateForm(forms.ModelForm):
         user = None
         password = None
 
-        # Create user account if checkbox is checked
-        if self.cleaned_data.get('create_user_account'):
+        # Create user account if checkbox is checked and teacher doesn't already have one
+        if self.cleaned_data.get('create_user_account') and not teacher.user:
             user, password = self._create_user_account(teacher.email)
             teacher.user = user
 
         if commit:
             teacher.save()
 
-            # Send welcome email
-            self._send_welcome_email(teacher, password, request)
+            # Send welcome email only if password was generated (new account or new user)
+            if password:
+                self._send_welcome_email(teacher, password, request)
 
         return teacher, password
 

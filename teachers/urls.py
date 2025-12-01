@@ -8,6 +8,7 @@ urlpatterns = [
     path('', views.teacher_list, name='list'),
     path('create/', views.teacher_create, name='create'),
     path('<int:pk>/', views.teacher_detail, name='detail'),
+    path('<int:pk>/edit/', views.teacher_edit, name='edit'),
     path('<int:pk>/export-pdf/', views.teacher_export_pdf, name='export_pdf'),
     path('<int:pk>/delete/', views.teacher_delete, name='delete'),
     # Bulk import

@@ -1,0 +1,170 @@
+<!-- Inline Teacher Detail View -->
+<div class="card bg-base-100 shadow-xl">
+    <div class="card-body">
+        <div class="flex justify-between items-start mb-6">
+            <div class="flex items-center gap-4">
+                <div class="avatar placeholder">
+                    <div class="bg-primary text-primary-content rounded-full w-20">
+                        <span class="text-2xl font-bold">{{ teacher.first_name|slice:":1" }}{{ teacher.last_name|slice:":1" }}</span>
+                    </div>
+                </div>
+                <div>
+                    <h2 class="card-title text-2xl">{{ teacher.get_full_name }}</h2>
+                    <div class="flex gap-2 mt-2">
+                        <span class="badge badge-lg badge-outline">{{ teacher.employee_id }}</span>
+                        {% if teacher.is_active %}
+                        <span class="badge badge-lg badge-success badge-outline">Active</span>
+                        {% else %}
+                        <span class="badge badge-lg badge-error badge-outline">Inactive</span>
+                        {% endif %}
+                        {% if teacher.user %}
+                        <span class="badge badge-lg badge-info badge-outline">Has Account</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <div class="flex gap-2">
+                <button type="button"
+                        class="btn btn-ghost btn-sm"
+                        onclick="document.body.dispatchEvent(new Event('formCancelled'))">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                    Close
+                </button>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <!-- Left Column -->
+            <div class="space-y-6">
+                <!-- Personal Information -->
+                <div>
+                    <div class="flex items-center gap-2 mb-4 pb-2 border-b-2 border-primary">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                        </svg>
+                        <h3 class="text-xl font-semibold">Personal Information</h3>
+                    </div>
+                    <div class="space-y-3">
+                        <div>
+                            <span class="text-base-content/60 text-sm">Gender</span>
+                            <div class="font-medium">{{ teacher.gender }}</div>
+                        </div>
+                        {% if teacher.date_of_birth %}
+                        <div>
+                            <span class="text-base-content/60 text-sm">Date of Birth</span>
+                            <div class="font-medium">{{ teacher.date_of_birth|date:"F j, Y" }}</div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Contact Information -->
+                <div>
+                    <div class="flex items-center gap-2 mb-4 pb-2 border-b-2 border-primary">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                        </svg>
+                        <h3 class="text-xl font-semibold">Contact Information</h3>
+                    </div>
+                    <div class="space-y-3">
+                        <div>
+                            <span class="text-base-content/60 text-sm">Email</span>
+                            <div class="font-medium">
+                                <a href="mailto:{{ teacher.email }}" class="link link-primary">{{ teacher.email }}</a>
+                            </div>
+                        </div>
+                        <div>
+                            <span class="text-base-content/60 text-sm">Phone Number</span>
+                            <div class="font-medium">
+                                <a href="tel:{{ teacher.phone_number }}" class="link link-primary">{{ teacher.phone_number }}</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column -->
+            <div class="space-y-6">
+                <!-- Employment Information -->
+                <div>
+                    <div class="flex items-center gap-2 mb-4 pb-2 border-b-2 border-primary">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                        </svg>
+                        <h3 class="text-xl font-semibold">Employment Information</h3>
+                    </div>
+                    <div class="space-y-3">
+                        <div>
+                            <span class="text-base-content/60 text-sm">Employee ID</span>
+                            <div class="font-medium">{{ teacher.employee_id }}</div>
+                        </div>
+                        <div>
+                            <span class="text-base-content/60 text-sm">Date Joined</span>
+                            <div class="font-medium">{{ teacher.date_joined|date:"F j, Y" }}</div>
+                        </div>
+                    </div>
+                </div>
+
+                {% if teacher.user %}
+                <!-- Account Information -->
+                <div>
+                    <div class="flex items-center gap-2 mb-4 pb-2 border-b-2 border-primary">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+                        </svg>
+                        <h3 class="text-xl font-semibold">Account Information</h3>
+                    </div>
+                    <div class="alert alert-info">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-current shrink-0 w-6 h-6">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        <span>This teacher has a user account and can log into the system.</span>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Timestamps -->
+                <div>
+                    <div class="flex items-center gap-2 mb-4 pb-2 border-b-2 border-base-300">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-base-content/60" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <h3 class="text-lg font-semibold text-base-content/60">Record Information</h3>
+                    </div>
+                    <div class="space-y-2 text-sm text-base-content/60">
+                        <div>
+                            <span class="font-medium">Created:</span> {{ teacher.created_at|date:"M d, Y g:i A" }}
+                        </div>
+                        <div>
+                            <span class="font-medium">Last Updated:</span> {{ teacher.updated_at|date:"M d, Y g:i A" }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="flex justify-end gap-3 pt-6 mt-6 border-t">
+            <a href="{% url 'teachers:export_pdf' teacher.id %}"
+               class="btn btn-outline"
+               target="_blank">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10" />
+                </svg>
+                Export PDF
+            </a>
+            <button type="button"
+                    class="btn btn-primary"
+                    hx-get="{% url 'teachers:edit' teacher.id %}"
+                    hx-target="#teacher-form-container"
+                    hx-swap="innerHTML">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                </svg>
+                Edit Teacher
+            </button>
+        </div>
+    </div>
+</div>

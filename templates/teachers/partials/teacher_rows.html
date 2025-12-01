@@ -11,7 +11,7 @@
                 <th>Actions</th>
             </tr>
         </thead>
-        <tbody>
+        <tbody id="teachers-tbody">
             {% for teacher in teachers %}
             <tr id="teacher-row-{{ teacher.id }}">
                 <td>{{ teacher.employee_id }}</td>
@@ -37,22 +37,72 @@
                 <td>{{ teacher.phone_number }}</td>
                 <td>{{ teacher.date_joined|date:"M d, Y" }}</td>
                 <td>
-                    <div class="flex gap-2">
-                        <a href="{% url 'teachers:detail' teacher.id %}"
-                           class="btn btn-ghost btn-xs">
-                            View
-                        </a>
-                        <button class="btn btn-ghost btn-xs text-error"
-                                hx-delete="{% url 'teachers:delete' teacher.id %}"
-                                hx-target="#teacher-row-{{ teacher.id }}"
-                                hx-swap="outerHTML"
-                                hx-confirm="Are you sure you want to delete this teacher?">
-                            Delete
+                    <div class="flex gap-1">
+                        <!-- View Button -->
+                        <button class="btn btn-ghost btn-xs tooltip"
+                                data-tip="View Details"
+                                hx-get="{% url 'teachers:detail' teacher.id %}"
+                                hx-target="#teacher-form-container"
+                                hx-swap="innerHTML">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                            </svg>
+                        </button>
+                        <!-- Edit Button -->
+                        <button class="btn btn-ghost btn-xs tooltip"
+                                data-tip="Edit"
+                                hx-get="{% url 'teachers:edit' teacher.id %}"
+                                hx-target="#teacher-form-container"
+                                hx-swap="innerHTML">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                            </svg>
+                        </button>
+                        <!-- Delete Button -->
+                        <button class="btn btn-ghost btn-xs text-error tooltip"
+                                data-tip="Delete"
+                                hx-post="{% url 'teachers:delete' teacher.id %}"
+                                hx-confirm="Are you sure you want to delete {{ teacher.get_full_name }}? This will deactivate the teacher.">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
                         </button>
                     </div>
                 </td>
             </tr>
             {% endfor %}
+
+            <!-- Load More Button Row -->
+            {% if page_obj.has_next %}
+            <tr id="load-more-row">
+                <td colspan="6" class="text-center py-4">
+                    <button class="btn btn-outline btn-sm"
+                            hx-get="{% url 'teachers:list' %}?page={{ page_obj.next_page_number }}{% if search %}&search={{ search }}{% endif %}{% if status %}&status={{ status }}{% endif %}{% if gender %}&gender={{ gender }}{% endif %}"
+                            hx-target="#load-more-row"
+                            hx-swap="outerHTML"
+                            hx-indicator="#load-more-spinner">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                        </svg>
+                        <span>Load More Teachers</span>
+                        <span class="badge badge-sm">{{ page_obj.end_index }} of {{ page_obj.paginator.count }}</span>
+                        <span id="load-more-spinner" class="loading loading-spinner loading-xs htmx-indicator"></span>
+                    </button>
+                </td>
+            </tr>
+            {% else %}
+            <tr id="load-more-row">
+                <td colspan="6" class="text-center py-4">
+                    <div class="text-base-content/60 text-sm">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                        </svg>
+                        All {{ page_obj.paginator.count }} teachers loaded
+                    </div>
+                </td>
+            </tr>
+            {% endif %}
         </tbody>
     </table>
 </div>

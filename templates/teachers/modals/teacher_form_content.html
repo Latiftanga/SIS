@@ -1,0 +1,228 @@
+<!-- Modal Form Content for Create/Edit Teacher -->
+<div class="modal-box max-w-6xl w-11/12">
+    <form method="post"
+          {% if action == 'edit' %}
+          hx-post="{% url 'teachers:edit' teacher.id %}"
+          {% else %}
+          hx-post="{% url 'teachers:create' %}"
+          {% endif %}
+          hx-target="#teacher-modal-content"
+          hx-swap="innerHTML">
+        {% csrf_token %}
+
+        <div class="flex justify-between items-center mb-6">
+            <h3 class="font-bold text-2xl">
+                {% if action == 'edit' %}
+                    Edit Teacher
+                {% else %}
+                    Add New Teacher
+                {% endif %}
+            </h3>
+            <button type="button"
+                    class="btn btn-sm btn-circle btn-ghost"
+                    onclick="document.getElementById('teacher-modal').close()">✕</button>
+        </div>
+
+        {% if form.non_field_errors %}
+        <div class="alert alert-error mb-4">
+            <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <div>
+                {% for error in form.non_field_errors %}
+                <span>{{ error }}</span>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <!-- Personal Information -->
+            <div class="col-span-3">
+                <h4 class="font-semibold text-lg mb-3 flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
+                    Personal Information
+                </h4>
+            </div>
+
+            <!-- First Name -->
+            <div class="form-control">
+                <label class="label">
+                    <span class="label-text font-medium">First Name <span class="text-error">*</span></span>
+                </label>
+                {{ form.first_name }}
+                {% if form.first_name.errors %}
+                <label class="label">
+                    <span class="label-text-alt text-error">{{ form.first_name.errors.0 }}</span>
+                </label>
+                {% endif %}
+            </div>
+
+            <!-- Last Name -->
+            <div class="form-control">
+                <label class="label">
+                    <span class="label-text font-medium">Last Name <span class="text-error">*</span></span>
+                </label>
+                {{ form.last_name }}
+                {% if form.last_name.errors %}
+                <label class="label">
+                    <span class="label-text-alt text-error">{{ form.last_name.errors.0 }}</span>
+                </label>
+                {% endif %}
+            </div>
+
+            <!-- Other Names -->
+            <div class="form-control">
+                <label class="label">
+                    <span class="label-text font-medium">Other Names</span>
+                </label>
+                {{ form.other_names }}
+                {% if form.other_names.errors %}
+                <label class="label">
+                    <span class="label-text-alt text-error">{{ form.other_names.errors.0 }}</span>
+                </label>
+                {% endif %}
+            </div>
+
+            <!-- Gender -->
+            <div class="form-control">
+                <label class="label">
+                    <span class="label-text font-medium">Gender <span class="text-error">*</span></span>
+                </label>
+                {{ form.gender }}
+                {% if form.gender.errors %}
+                <label class="label">
+                    <span class="label-text-alt text-error">{{ form.gender.errors.0 }}</span>
+                </label>
+                {% endif %}
+            </div>
+
+            <!-- Date of Birth -->
+            <div class="form-control">
+                <label class="label">
+                    <span class="label-text font-medium">Date of Birth</span>
+                </label>
+                {{ form.date_of_birth }}
+                {% if form.date_of_birth.errors %}
+                <label class="label">
+                    <span class="label-text-alt text-error">{{ form.date_of_birth.errors.0 }}</span>
+                </label>
+                {% endif %}
+            </div>
+
+            <!-- Contact Information -->
+            <div class="col-span-3 mt-4">
+                <h4 class="font-semibold text-lg mb-3 flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                    </svg>
+                    Contact Information
+                </h4>
+            </div>
+
+            <!-- Email -->
+            <div class="form-control">
+                <label class="label">
+                    <span class="label-text font-medium">Email <span class="text-error">*</span></span>
+                </label>
+                {{ form.email }}
+                {% if form.email.errors %}
+                <label class="label">
+                    <span class="label-text-alt text-error">{{ form.email.errors.0 }}</span>
+                </label>
+                {% endif %}
+            </div>
+
+            <!-- Phone Number -->
+            <div class="form-control">
+                <label class="label">
+                    <span class="label-text font-medium">Phone Number <span class="text-error">*</span></span>
+                </label>
+                {{ form.phone_number }}
+                {% if form.phone_number.errors %}
+                <label class="label">
+                    <span class="label-text-alt text-error">{{ form.phone_number.errors.0 }}</span>
+                </label>
+                {% endif %}
+            </div>
+
+            <!-- Employment Information -->
+            <div class="col-span-3 mt-4">
+                <h4 class="font-semibold text-lg mb-3 flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                    </svg>
+                    Employment Information
+                </h4>
+            </div>
+
+            <!-- Employee ID -->
+            <div class="form-control">
+                <label class="label">
+                    <span class="label-text font-medium">Employee ID <span class="text-error">*</span></span>
+                </label>
+                {{ form.employee_id }}
+                {% if form.employee_id.errors %}
+                <label class="label">
+                    <span class="label-text-alt text-error">{{ form.employee_id.errors.0 }}</span>
+                </label>
+                {% endif %}
+            </div>
+
+            <!-- Date Joined -->
+            <div class="form-control">
+                <label class="label">
+                    <span class="label-text font-medium">Date Joined <span class="text-error">*</span></span>
+                </label>
+                {{ form.date_joined }}
+                {% if form.date_joined.errors %}
+                <label class="label">
+                    <span class="label-text-alt text-error">{{ form.date_joined.errors.0 }}</span>
+                </label>
+                {% endif %}
+            </div>
+
+            <!-- Account Settings -->
+            {% if action == 'create' %}
+            <div class="col-span-3 mt-4">
+                <div class="card bg-base-200">
+                    <div class="card-body p-4">
+                        <h4 class="font-semibold text-lg mb-2 flex items-center gap-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+                            </svg>
+                            Account Settings
+                        </h4>
+                        <div class="form-control">
+                            <label class="label cursor-pointer justify-start gap-3">
+                                {{ form.create_user_account }}
+                                <span class="label-text">
+                                    Create user account for system access
+                                    <span class="block text-xs text-base-content/60 mt-1">Teacher will receive login credentials via email</span>
+                                </span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="modal-action">
+            <button type="button"
+                    class="btn btn-ghost"
+                    onclick="document.getElementById('teacher-modal').close()">
+                Cancel
+            </button>
+            <button type="submit" class="btn btn-primary">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                </svg>
+                {% if action == 'edit' %}Update Teacher{% else %}Add Teacher{% endif %}
+            </button>
+        </div>
+    </form>
+</div>

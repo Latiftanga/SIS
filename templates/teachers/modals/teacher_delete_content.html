@@ -1,0 +1,62 @@
+<!-- Modal Content for Delete Confirmation -->
+<div class="modal-box">
+    <div class="flex justify-between items-center mb-6">
+        <h3 class="font-bold text-2xl text-error">Confirm Deletion</h3>
+        <button type="button"
+                class="btn btn-sm btn-circle btn-ghost"
+                onclick="document.getElementById('teacher-modal').close()">✕</button>
+    </div>
+
+    <!-- Warning Alert -->
+    <div class="alert alert-warning mb-6">
+        <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+        </svg>
+        <div>
+            <h3 class="font-bold">Warning!</h3>
+            <div class="text-sm">This action will deactivate the teacher. They will no longer appear in active teacher lists.</div>
+        </div>
+    </div>
+
+    <!-- Teacher Info -->
+    <div class="card bg-base-200 mb-6">
+        <div class="card-body p-4">
+            <div class="flex items-center gap-3">
+                <div class="avatar placeholder">
+                    <div class="bg-neutral text-neutral-content rounded-full w-12">
+                        <span class="text-lg">{{ teacher.first_name|slice:":1" }}{{ teacher.last_name|slice:":1" }}</span>
+                    </div>
+                </div>
+                <div>
+                    <div class="font-bold text-lg">{{ teacher.get_full_name }}</div>
+                    <div class="text-sm opacity-70">{{ teacher.employee_id }} • {{ teacher.email }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confirmation Text -->
+    <p class="text-base-content/80 mb-6">
+        Are you sure you want to delete <strong>{{ teacher.get_full_name }}</strong>?
+        This will set the teacher as inactive in the system.
+    </p>
+
+    <!-- Action Buttons -->
+    <div class="modal-action">
+        <button type="button"
+                class="btn btn-ghost"
+                onclick="document.getElementById('teacher-modal').close()">
+            Cancel
+        </button>
+        <button type="button"
+                class="btn btn-error"
+                hx-post="{% url 'teachers:delete' teacher.id %}"
+                hx-confirm="Are you absolutely sure?"
+                onclick="document.getElementById('teacher-modal').close()">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+            </svg>
+            Delete Teacher
+        </button>
+    </div>
+</div>

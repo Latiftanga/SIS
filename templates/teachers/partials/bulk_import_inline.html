@@ -1,0 +1,175 @@
+<!-- Inline Bulk Import Form -->
+<div class="card bg-base-100 shadow-xl">
+    <div class="card-body">
+        <div class="flex justify-between items-center mb-6">
+            <div>
+                <h2 class="card-title text-2xl">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                    </svg>
+                    Bulk Import Teachers
+                </h2>
+                <p class="text-base-content/60 mt-1">Upload Excel or CSV file to import multiple teachers at once</p>
+            </div>
+            <button type="button"
+                    class="btn btn-ghost btn-sm"
+                    onclick="document.body.dispatchEvent(new Event('formCancelled'))">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+                Cancel
+            </button>
+        </div>
+
+        <!-- Download Template Section -->
+        <div class="mb-8">
+            <div class="flex items-center gap-2 mb-4 pb-2 border-b-2 border-primary">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10" />
+                </svg>
+                <h3 class="text-xl font-semibold">Step 1: Download Template</h3>
+            </div>
+            <p class="text-base-content/70 mb-4">
+                Download a sample template file to see the expected format. Fill in your teacher data and upload the file below.
+            </p>
+            <div class="flex gap-3">
+                <button type="button"
+                        onclick="downloadTemplate('xlsx')"
+                        class="btn btn-outline btn-success">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    Excel Template (.xlsx)
+                </button>
+                <button type="button"
+                        onclick="downloadTemplate('csv')"
+                        class="btn btn-outline btn-info">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    CSV Template (.csv)
+                </button>
+            </div>
+        </div>
+
+        <!-- Upload Form Section -->
+        <div class="mb-8">
+            <div class="flex items-center gap-2 mb-4 pb-2 border-b-2 border-primary">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                </svg>
+                <h3 class="text-xl font-semibold">Step 2: Upload File</h3>
+            </div>
+
+            <form method="post"
+                  enctype="multipart/form-data"
+                  hx-post="{% url 'teachers:bulk_import' %}"
+                  hx-target="#teacher-form-container"
+                  hx-swap="innerHTML"
+                  hx-encoding="multipart/form-data">
+                {% csrf_token %}
+
+                {% if form.non_field_errors %}
+                <div class="alert alert-error mb-4">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <div>
+                        {% for error in form.non_field_errors %}
+                        <span>{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
+                <div class="space-y-6">
+                    <!-- File Upload -->
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text font-medium">Select File <span class="text-error">*</span></span>
+                        </label>
+                        {{ form.file }}
+                        {% if form.file.errors %}
+                        <label class="label">
+                            <span class="label-text-alt text-error">{{ form.file.errors.0 }}</span>
+                        </label>
+                        {% endif %}
+                        {% if form.file.help_text %}
+                        <label class="label">
+                            <span class="label-text-alt">{{ form.file.help_text }}</span>
+                        </label>
+                        {% endif %}
+                    </div>
+
+                    <!-- Create User Accounts -->
+                    <div class="alert alert-info text-info-content">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 shrink-0 stroke-current" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+                        </svg>
+                        <div class="flex-1">
+                            <div class="form-control">
+                                <label class="label cursor-pointer justify-start gap-3">
+                                    {{ form.create_user_accounts }}
+                                    <span class="label-text text-info-content">
+                                        {{ form.create_user_accounts.label }}
+                                        <span class="block text-xs opacity-70 mt-1">{{ form.create_user_accounts.help_text }}</span>
+                                    </span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Info Alert -->
+                    <div class="alert alert-warning">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-current shrink-0 w-6 h-6">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        <div>
+                            <h4 class="font-bold">Important Notes:</h4>
+                            <ul class="list-disc list-inside space-y-1 text-sm mt-2">
+                                <li>File must be Excel (.xlsx, .xls) or CSV (.csv) format</li>
+                                <li>Maximum file size: 5MB</li>
+                                <li>Email addresses and employee IDs must be unique</li>
+                                <li>Dates should be in YYYY-MM-DD format</li>
+                                <li>You'll preview the data before final import</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="flex justify-end gap-3 pt-4 mt-6 border-t">
+                    <button type="button"
+                            class="btn btn-ghost"
+                            onclick="document.body.dispatchEvent(new Event('formCancelled'))">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                        Cancel
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        Upload and Preview
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+function downloadTemplate(format) {
+    // Create a temporary iframe for download
+    const iframe = document.createElement('iframe');
+    iframe.style.display = 'none';
+    iframe.src = "{% url 'teachers:download_template' %}?format=" + format;
+    document.body.appendChild(iframe);
+
+    // Remove iframe after download starts
+    setTimeout(function() {
+        document.body.removeChild(iframe);
+    }, 1000);
+}
+</script>

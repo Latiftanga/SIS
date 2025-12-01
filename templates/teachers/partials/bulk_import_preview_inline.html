@@ -1,0 +1,170 @@
+<!-- Inline Bulk Import Preview -->
+<div class="card bg-base-100 shadow-xl">
+    <div class="card-body">
+        <div class="flex justify-between items-center mb-6">
+            <div>
+                <h2 class="card-title text-2xl">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    Preview Import Data
+                </h2>
+                <p class="text-base-content/60 mt-1">Review the data before importing. Invalid rows will be skipped.</p>
+            </div>
+            <button type="button"
+                    class="btn btn-ghost btn-sm"
+                    hx-get="{% url 'teachers:bulk_import' %}"
+                    hx-target="#teacher-form-container"
+                    hx-swap="innerHTML">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                </svg>
+                Back
+            </button>
+        </div>
+
+        <!-- Summary Stats -->
+        <div class="stats stats-vertical lg:stats-horizontal shadow mb-6 w-full">
+            <div class="stat">
+                <div class="stat-figure text-primary">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                </div>
+                <div class="stat-title">Total Records</div>
+                <div class="stat-value text-primary">{{ total }}</div>
+            </div>
+
+            <div class="stat">
+                <div class="stat-figure text-success">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                </div>
+                <div class="stat-title">Valid Records</div>
+                <div class="stat-value text-success">{{ valid }}</div>
+            </div>
+
+            <div class="stat">
+                <div class="stat-figure text-error">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                </div>
+                <div class="stat-title">Invalid Records</div>
+                <div class="stat-value text-error">{{ invalid }}</div>
+            </div>
+        </div>
+
+        {% if invalid > 0 %}
+        <div class="alert alert-warning mb-6">
+            <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+            <span><strong>Warning:</strong> {{ invalid }} record(s) have validation errors and will be skipped during import.</span>
+        </div>
+        {% endif %}
+
+        <!-- Preview Table -->
+        <div class="mb-6">
+            <h3 class="text-lg font-semibold mb-3">Data Preview</h3>
+            <div class="overflow-x-auto border border-base-300 rounded-lg">
+                <table class="table table-sm table-zebra">
+                    <thead>
+                        <tr class="bg-base-200">
+                            <th class="text-xs">Row</th>
+                            <th class="text-xs">Status</th>
+                            <th class="text-xs">Name</th>
+                            <th class="text-xs">Email</th>
+                            <th class="text-xs">Employee ID</th>
+                            <th class="text-xs">Gender</th>
+                            <th class="text-xs">Phone</th>
+                            <th class="text-xs">Date Joined</th>
+                            <th class="text-xs">Errors</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for teacher in teachers %}
+                        <tr class="{% if not teacher.valid %}bg-error/10{% endif %}">
+                            <td class="text-xs">{{ teacher.row_num }}</td>
+                            <td>
+                                {% if teacher.valid %}
+                                <span class="badge badge-success badge-xs">Valid</span>
+                                {% else %}
+                                <span class="badge badge-error badge-xs">Invalid</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-xs">{{ teacher.first_name }} {{ teacher.last_name }}</td>
+                            <td class="text-xs">{{ teacher.email }}</td>
+                            <td class="text-xs">{{ teacher.employee_id }}</td>
+                            <td class="text-xs">{{ teacher.gender }}</td>
+                            <td class="text-xs">{{ teacher.phone_number }}</td>
+                            <td class="text-xs">{{ teacher.date_joined|default:"-" }}</td>
+                            <td class="text-xs text-error">
+                                {% if teacher.errors %}
+                                <ul class="list-disc list-inside">
+                                    {% for error in teacher.errors %}
+                                    <li>{{ error }}</li>
+                                    {% endfor %}
+                                </ul>
+                                {% else %}
+                                -
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Account Creation Info -->
+        <div class="mb-6">
+            {% if create_accounts %}
+            <div class="alert alert-info">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span>User accounts will be created for all valid teachers with auto-generated passwords sent via email.</span>
+            </div>
+            {% else %}
+            <div class="alert">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span>Teachers will be created without user accounts.</span>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="flex justify-end gap-3 pt-4 border-t">
+            <button type="button"
+                    class="btn btn-ghost"
+                    hx-get="{% url 'teachers:bulk_import' %}"
+                    hx-target="#teacher-form-container"
+                    hx-swap="innerHTML">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                </svg>
+                Back
+            </button>
+            {% if valid > 0 %}
+            <button type="button"
+                    class="btn btn-primary"
+                    hx-post="{% url 'teachers:bulk_import_process' %}"
+                    hx-confirm="Are you sure you want to import {{ valid }} teacher(s)?"
+                    onclick="document.body.dispatchEvent(new Event('formCancelled'))">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                </svg>
+                Import {{ valid }} Teacher{% if valid != 1 %}s{% endif %}
+            </button>
+            {% else %}
+            <button type="button" class="btn btn-disabled" disabled>
+                No Valid Records to Import
+            </button>
+            {% endif %}
+        </div>
+    </div>
+</div>
