@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="view-transition" content="same-origin" />
-    <title>{% block title %}Dashboard{% endblock %} | {{ school_settings.short_name|default:'SmartSIS' }}</title>
+    <title>{% block title %}Dashboard{% endblock %} | {{ school_name }}</title>
 
     <!-- Apply theme immediately to prevent flash -->
     <script>
@@ -30,7 +30,7 @@
                     {% if school_settings.logo %}
                         <img src="{{ school_settings.logo.url }}" alt="Logo" class="h-8 w-auto">
                     {% else %}
-                        <span class="text-xl font-bold text-primary">{{ school_settings.short_name|default:'SmartSIS' }}</span>
+                        <span class="text-xl font-bold text-primary">{{ school_name }}</span>
                     {% endif %}
                 </a>
             </div>
@@ -47,7 +47,7 @@
                     {% if school_settings.motto %}
                         {{ school_settings.motto }}
                     {% else %}
-                        SmartSIS v1.0.0
+                        {{ school_name }} v1.0.0
                     {% endif %}
                 </div>
             </div>
@@ -83,7 +83,7 @@
                     {% if school_settings.logo %}
                         <img src="{{ school_settings.logo.url }}" alt="Logo" class="h-8 w-auto">
                     {% else %}
-                        <span class="text-xl font-bold text-primary">{{ school_settings.short_name|default:'SmartSIS' }}</span>
+                        <span class="text-xl font-bold text-primary">{{ school_name }}</span>
                     {% endif %}
                 </a>
                 <label for="mobile-drawer" class="btn btn-ghost btn-sm btn-circle">
@@ -104,7 +104,7 @@
                     {% if school_settings.motto %}
                         {{ school_settings.motto }}
                     {% else %}
-                        SmartSIS v1.0.0
+                        {{ school_name }} v1.0.0
                     {% endif %}
                 </div>
             </div>

@@ -3,13 +3,25 @@
 {% block title %}Bulk Import Students{% endblock %}
 
 {% block content %}
-<div class="max-w-4xl mx-auto space-y-6">
+<div class="space-y-6">
+    <!-- Breadcrumb -->
+    <div class="text-sm breadcrumbs mb-4">
+        <ul>
+            <li>
+                <a href="{% url 'students:list' %}"
+                   hx-get="{% url 'students:list' %}"
+                   hx-target="#main-content"
+                   hx-push-url="true">Students</a>
+            </li>
+            <li>Bulk Import</li>
+        </ul>
+    </div>
+
     <div class="flex justify-between items-center">
         <div>
             <h1 class="text-3xl font-bold">Bulk Import Students</h1>
             <p class="text-base-content/60 mt-1">Upload Excel or CSV file to import multiple students at once</p>
         </div>
-        <a href="{% url 'students:list' %}" class="btn btn-ghost btn-sm">Back to Students</a>
     </div>
 
     <!-- Download Template -->
@@ -65,7 +77,19 @@
                 </div>
 
                 <div class="card-actions justify-end mt-6">
-                    <button type="submit" class="btn btn-primary">Upload and Preview</button>
+                    <a href="{% url 'students:list' %}"
+                       hx-get="{% url 'students:list' %}"
+                       hx-target="#main-content"
+                       hx-push-url="true"
+                       class="btn btn-ghost">
+                        Cancel
+                    </a>
+                    <button type="submit" class="btn btn-primary">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        Upload and Preview
+                    </button>
                 </div>
             </form>
         </div>

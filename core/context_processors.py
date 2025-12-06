@@ -29,10 +29,26 @@ def school_settings(request: HttpRequest) -> Dict[str, Any]:
             # Fallback if settings doesn't exist
             settings = None
 
+    # Get school name from Tenant model first, then fall back to SchoolSettings
+    school_name = 'SmartSIS'  # Ultimate fallback
+    try:
+        from schools.models import School
+        tenant = School.objects.filter(schema_name=connection.schema_name).first()
+        if tenant and tenant.short_name:
+            school_name = tenant.short_name
+        elif settings and settings.short_name:
+            school_name = settings.short_name
+    except Exception:
+        # If tenant query fails, use SchoolSettings
+        if settings and settings.short_name:
+            school_name = settings.short_name
+
     return {
         'school_settings': settings,
-        'school_name': settings.short_name if settings else 'SmartSIS',
+        'school_name': school_name,
         'school_logo': settings.logo.url if settings and settings.logo else None,
         'school_motto': settings.motto if settings else '',
         'school_theme': settings.theme_name if settings else 'light',
+        'current_academic_year': settings.current_academic_year.name if settings and settings.current_academic_year else '',
+        'current_term': settings.current_term if settings else '',
     }

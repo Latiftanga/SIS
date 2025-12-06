@@ -24,7 +24,7 @@
                 {% csrf_token %}
 
                 <!-- Promotion Settings -->
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                <div class="mb-6">
                     <div class="form-control">
                         <label class="label">
                             <span class="label-text font-semibold">Promote To (Next Academic Year) <span class="text-error">*</span></span>
@@ -32,28 +32,21 @@
                         <select name="next_class" class="select select-bordered select-sm" required>
                             <option value="">Select destination class...</option>
                             {% for class in next_year_classes %}
-                            <option value="{{ class.id }}">
+                            <option value="{{ class.id }}" {% if suggested_class and class.id == suggested_class.id %}selected{% endif %}>
                                 {{ class.name }} - {{ class.academic_year }}
                                 (Capacity: {{ class.get_student_count }}/{{ class.capacity }})
+                                {% if suggested_class and class.id == suggested_class.id %} ⭐ Suggested{% endif %}
                             </option>
                             {% endfor %}
                         </select>
                         <div class="label">
-                            <span class="label-text-alt">Choose the class for promoted students</span>
-                        </div>
-                    </div>
-
-                    <div class="form-control">
-                        <label class="label">
-                            <span class="label-text font-semibold">Completion Date <span class="text-error">*</span></span>
-                        </label>
-                        <input type="date"
-                               name="completion_date"
-                               value="{% now 'Y-m-d' %}"
-                               class="input input-bordered input-sm"
-                               required>
-                        <div class="label">
-                            <span class="label-text-alt">Date when academic year ended</span>
+                            <span class="label-text-alt">
+                                {% if suggested_class %}
+                                    Logical next class has been pre-selected. Completion date will be set to {{ current_class.academic_year.end_date|date:"M d, Y" }}.
+                                {% else %}
+                                    Choose the class for promoted students. Completion date will be set to {{ current_class.academic_year.end_date|date:"M d, Y" }}.
+                                {% endif %}
+                            </span>
                         </div>
                     </div>
                 </div>
@@ -64,15 +57,48 @@
                     </svg>
                     <div>
                         <div class="font-semibold">Instructions:</div>
-                        <div>Select the destination class and mark each student as <strong>Promoted</strong> or <strong>Repeated</strong>. Students marked as repeated will be enrolled in the same grade level for the next academic year.</div>
+                        <div>Check students you want to process, then mark each as <strong>Promoted</strong>, <strong>Repeated</strong>, or other status. Only selected students will be processed.</div>
+                    </div>
+                </div>
+
+                <!-- Bulk Actions -->
+                <div class="flex flex-wrap gap-2 mb-4">
+                    <button type="button" class="btn btn-sm btn-outline" onclick="toggleSelectAll()">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                        </svg>
+                        <span id="select-all-text">Select All</span>
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline" onclick="setSelectedResults('promoted')">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                        </svg>
+                        Mark Selected as Promoted
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline" onclick="setSelectedResults('repeated')">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                        </svg>
+                        Mark Selected as Repeated
+                    </button>
+                    <div class="ml-auto flex items-center gap-2">
+                        <span class="text-sm text-base-content/60">Selected:</span>
+                        <div class="badge badge-primary badge-sm" id="selected-count">0 Students</div>
+                        <div class="badge badge-success badge-sm" id="promoted-count">0 Promoted</div>
+                        <div class="badge badge-warning badge-sm" id="repeated-count">0 Repeated</div>
                     </div>
                 </div>
 
                 <!-- Students Table -->
                 <div class="overflow-x-auto">
-                    <table class="table table-zebra">
+                    <table class="table table-zebra table-sm">
                         <thead>
                             <tr>
+                                <th>
+                                    <label>
+                                        <input type="checkbox" class="checkbox checkbox-sm" id="select-all-checkbox" onchange="toggleAllCheckboxes(this)">
+                                    </label>
+                                </th>
                                 <th>Roll No.</th>
                                 <th>Student ID</th>
                                 <th>Student Name</th>
@@ -82,13 +108,23 @@
                         </thead>
                         <tbody>
                             {% for enrollment in enrollments %}
-                            <tr>
+                            <tr class="student-row">
+                                <th>
+                                    <label>
+                                        <input type="checkbox"
+                                               name="selected_students"
+                                               value="{{ enrollment.student.id }}"
+                                               class="checkbox checkbox-sm student-checkbox"
+                                               onchange="updateSummary()"
+                                               checked>
+                                    </label>
+                                </th>
                                 <td>{{ enrollment.roll_number|default:"—" }}</td>
-                                <td><span class="badge badge-outline">{{ enrollment.student.student_id }}</span></td>
+                                <td><span class="badge badge-outline badge-sm">{{ enrollment.student.student_id }}</span></td>
                                 <td class="font-semibold">{{ enrollment.student.get_full_name }}</td>
-                                <td>{{ enrollment.student.current_grade }}</td>
+                                <td><span class="badge badge-primary badge-sm">{{ enrollment.student.get_current_grade }}</span></td>
                                 <td>
-                                    <select name="result_{{ enrollment.student.id }}" class="select select-bordered select-xs">
+                                    <select name="result_{{ enrollment.student.id }}" class="select select-bordered select-xs result-select" onchange="updateSummary()">
                                         <option value="promoted" selected>✓ Promoted</option>
                                         <option value="repeated">⟳ Repeated</option>
                                         <option value="graduated">🎓 Graduated</option>
@@ -104,12 +140,12 @@
 
                 <!-- Action Buttons -->
                 <div class="card-actions justify-end pt-6">
-                    <a href="{% url 'classes:class_detail' current_class.id %}" class="btn btn-ghost">Cancel</a>
-                    <button type="submit" class="btn btn-primary">
+                    <a href="{% url 'classes:class_detail' current_class.id %}" class="btn btn-ghost btn-sm">Cancel</a>
+                    <button type="submit" class="btn btn-primary btn-sm">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18" />
                         </svg>
-                        Promote Class
+                        Process Selected Students
                     </button>
                 </div>
             </form>
@@ -121,10 +157,106 @@
             <h3 class="text-xl font-semibold text-base-content/60">No Students to Promote</h3>
             <p class="text-base-content/40 mt-2">This class has no active enrollments</p>
             <div class="mt-4">
-                <a href="{% url 'classes:class_detail' current_class.id %}" class="btn btn-ghost">Back to Class</a>
+                <a href="{% url 'classes:class_detail' current_class.id %}" class="btn btn-ghost btn-sm">Back to Class</a>
             </div>
         </div>
     </div>
     {% endif %}
 </div>
+
+<script>
+    // Toggle select/deselect all
+    function toggleSelectAll() {
+        const checkboxes = document.querySelectorAll('.student-checkbox');
+        const allChecked = Array.from(checkboxes).every(cb => cb.checked);
+
+        checkboxes.forEach(checkbox => {
+            checkbox.checked = !allChecked;
+        });
+
+        document.getElementById('select-all-checkbox').checked = !allChecked;
+        document.getElementById('select-all-text').textContent = allChecked ? 'Select All' : 'Deselect All';
+        updateSummary();
+    }
+
+    // Toggle all checkboxes from header checkbox
+    function toggleAllCheckboxes(masterCheckbox) {
+        const checkboxes = document.querySelectorAll('.student-checkbox');
+        checkboxes.forEach(checkbox => {
+            checkbox.checked = masterCheckbox.checked;
+        });
+        document.getElementById('select-all-text').textContent = masterCheckbox.checked ? 'Deselect All' : 'Select All';
+        updateSummary();
+    }
+
+    // Set results for only selected students
+    function setSelectedResults(value) {
+        const checkboxes = document.querySelectorAll('.student-checkbox:checked');
+        checkboxes.forEach(checkbox => {
+            const row = checkbox.closest('tr');
+            const select = row.querySelector('.result-select');
+            if (select) {
+                select.value = value;
+            }
+        });
+        updateSummary();
+    }
+
+    // Update the summary counts
+    function updateSummary() {
+        const selectedCheckboxes = document.querySelectorAll('.student-checkbox:checked');
+        const allCheckboxes = document.querySelectorAll('.student-checkbox');
+        let promoted = 0;
+        let repeated = 0;
+
+        selectedCheckboxes.forEach(checkbox => {
+            const row = checkbox.closest('tr');
+            const select = row.querySelector('.result-select');
+            if (select) {
+                const value = select.value;
+                if (value === 'promoted') {
+                    promoted++;
+                } else if (value === 'repeated') {
+                    repeated++;
+                }
+            }
+        });
+
+        const selectedCount = selectedCheckboxes.length;
+        const totalCount = allCheckboxes.length;
+
+        document.getElementById('selected-count').textContent = `${selectedCount}/${totalCount} Students`;
+        document.getElementById('promoted-count').textContent = `${promoted} Promoted`;
+        document.getElementById('repeated-count').textContent = `${repeated} Repeated`;
+
+        // Update master checkbox state
+        const masterCheckbox = document.getElementById('select-all-checkbox');
+        if (masterCheckbox) {
+            masterCheckbox.checked = selectedCount === totalCount;
+            masterCheckbox.indeterminate = selectedCount > 0 && selectedCount < totalCount;
+        }
+
+        // Update select all button text
+        const selectAllText = document.getElementById('select-all-text');
+        if (selectAllText) {
+            selectAllText.textContent = selectedCount === totalCount ? 'Deselect All' : 'Select All';
+        }
+    }
+
+    // Initialize summary on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        updateSummary();
+    });
+
+    // Add form submission warning if no students selected
+    document.querySelector('form').addEventListener('submit', function(e) {
+        const selectedCount = document.querySelectorAll('.student-checkbox:checked').length;
+        if (selectedCount === 0) {
+            e.preventDefault();
+            alert('Please select at least one student to process.');
+            return false;
+        }
+    });
+</script>
+
 {% endblock %}

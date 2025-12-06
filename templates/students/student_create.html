@@ -1,34 +1,59 @@
 {% extends 'dashboard/layouts/dashboard_base.html' %}
 
-{% block title %}Add New Student{% endblock %}
+{% block title %}{{ action|default:"Add" }} Student{% endblock %}
 
 {% block content %}
-<div class="max-w-4xl mx-auto">
+<div class="p-6">
+    <!-- Breadcrumb -->
+    <div class="text-sm breadcrumbs mb-4">
+        <ul>
+            <li>
+                <a href="{% url 'students:list' %}"
+                   hx-get="{% url 'students:list' %}"
+                   hx-target="#main-content"
+                   hx-push-url="true">Students</a>
+            </li>
+            {% if student %}
+                <li>
+                    <a href="{% url 'students:detail' student.id %}"
+                       hx-get="{% url 'students:detail' student.id %}"
+                       hx-target="#main-content"
+                       hx-push-url="true">{{ student.get_full_name }}</a>
+                </li>
+                <li>{{ action|default:"Edit" }}</li>
+            {% else %}
+                <li>{{ action|default:"Add" }}</li>
+            {% endif %}
+        </ul>
+    </div>
+
     <!-- Header -->
     <div class="mb-6">
-        <div class="flex items-center justify-between">
-            <div>
-                <h1 class="text-2xl font-bold">Add New Student</h1>
-                <p class="text-base-content/60 text-sm mt-1">Fill in the student information below</p>
-            </div>
-            <a href="{% url 'students:list' %}" class="btn btn-ghost btn-sm">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                </svg>
-                Cancel
-            </a>
-        </div>
+        <h1 class="text-3xl font-bold">{{ action|default:"Add" }} Student</h1>
+        <p class="text-gray-600 mt-1">Fill in the student information below</p>
     </div>
 
     <!-- Form Card -->
     <div class="card bg-base-100 shadow-xl">
         <div class="card-body">
-            <form method="post" enctype="multipart/form-data" action="{% url 'students:create' %}" class="space-y-4">
+            <form method="post"
+                  enctype="multipart/form-data"
+                  hx-post="{% if student %}{% url 'students:edit' student.id %}{% else %}{% url 'students:create' %}{% endif %}"
+                  hx-target="#main-content"
+                  hx-swap="innerHTML"
+                  class="space-y-4">
                 {% csrf_token %}
 
                 {% if form.non_field_errors %}
                 <div class="alert alert-error text-sm">
-                    {{ form.non_field_errors.0 }}
+                    <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current flex-shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <div>
+                        {% for error in form.non_field_errors %}
+                            <p>{{ error }}</p>
+                        {% endfor %}
+                    </div>
                 </div>
                 {% endif %}
 
@@ -80,7 +105,7 @@
                 <div class="space-y-3">
                     <h4 class="font-semibold text-base-content">Student Information</h4>
 
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div class="form-control">
                             <label class="label"><span class="label-text">Student ID <span class="text-error">*</span></span></label>
                             {{ form.student_id }}
@@ -91,10 +116,24 @@
                             {{ form.admission_date }}
                             {% if form.admission_date.errors %}<div class="label"><span class="label-text-alt text-error">{{ form.admission_date.errors.0 }}</span></div>{% endif %}
                         </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div class="form-control">
-                            <label class="label"><span class="label-text">Current Grade <span class="text-error">*</span></span></label>
-                            {{ form.current_grade }}
-                            {% if form.current_grade.errors %}<div class="label"><span class="label-text-alt text-error">{{ form.current_grade.errors.0 }}</span></div>{% endif %}
+                            <label class="label"><span class="label-text">Class Enrollment (Optional)</span></label>
+                            {{ form.class_enrollment }}
+                            {% if form.class_enrollment.errors %}<div class="label"><span class="label-text-alt text-error">{{ form.class_enrollment.errors.0 }}</span></div>{% endif %}
+                            <div class="label">
+                                <span class="label-text-alt">Assign student to a class</span>
+                            </div>
+                        </div>
+                        <div class="form-control">
+                            <label class="label"><span class="label-text">House (Optional)</span></label>
+                            {{ form.house }}
+                            {% if form.house.errors %}<div class="label"><span class="label-text-alt text-error">{{ form.house.errors.0 }}</span></div>{% endif %}
+                            <div class="label">
+                                <span class="label-text-alt">Assign student to a house for inter-house competitions</span>
+                            </div>
                         </div>
                     </div>
 
@@ -178,6 +217,7 @@
                 <div class="divider"></div>
 
                 <!-- User Account Option -->
+                {% if not student %}
                 <div class="space-y-3">
                     <h4 class="font-semibold text-base-content">System Access (Optional)</h4>
                     <div class="form-control">
@@ -190,15 +230,20 @@
                         </label>
                     </div>
                 </div>
+                {% endif %}
 
                 <!-- Action Buttons -->
-                <div class="card-actions justify-end pt-4">
-                    <a href="{% url 'students:list' %}" class="btn btn-ghost">Cancel</a>
+                <div class="card-actions justify-end pt-4 mt-6">
+                    <a href="{% url 'students:list' %}"
+                       hx-get="{% url 'students:list' %}"
+                       hx-target="#main-content"
+                       hx-push-url="true"
+                       class="btn btn-ghost">Cancel</a>
                     <button type="submit" class="btn btn-primary">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                         </svg>
-                        Add Student
+                        {{ action|default:"Add" }} Student
                     </button>
                 </div>
             </form>

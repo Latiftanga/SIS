@@ -4,102 +4,393 @@
 
 {% block content %}
 <div class="space-y-6">
+    <!-- Header -->
     <div class="flex justify-between items-center">
         <div>
             <h1 class="text-3xl font-bold text-base-content">Grading Periods</h1>
-            <p class="text-base-content/60 mt-1">Manage academic terms and grading periods</p>
+            <p class="text-base-content/60 mt-1">Manage academic terms and grading configurations</p>
         </div>
-        <a href="{% url 'grading:period_create' %}" class="btn btn-primary btn-sm">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <button onclick="period_create_modal.showModal()" class="btn btn-primary btn-sm gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
             </svg>
-            Add Grading Period
-        </a>
+            Create Grading Period
+        </button>
     </div>
 
-    <div class="flex gap-2">
-        <a href="?status=all" class="btn btn-sm {% if status == 'all' %}btn-primary{% else %}btn-ghost{% endif %}">All</a>
-        <a href="?status=active" class="btn btn-sm {% if status == 'active' %}btn-primary{% else %}btn-ghost{% endif %}">Active</a>
-        <a href="?status=current" class="btn btn-sm {% if status == 'current' %}btn-primary{% else %}btn-ghost{% endif %}">Current</a>
-    </div>
+    <!-- Stats Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div class="stats shadow">
+            <div class="stat">
+                <div class="stat-figure text-primary">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                    </svg>
+                </div>
+                <div class="stat-title">Total Periods</div>
+                <div class="stat-value text-primary">{{ periods|length }}</div>
+            </div>
+        </div>
 
-    <div class="card bg-base-100 shadow-xl">
-        <div class="card-body">
-            <div class="overflow-x-auto">
-                <table class="table table-zebra">
-                    <thead>
-                        <tr>
-                            <th>Academic Year</th>
-                            <th>Term</th>
-                            <th>Period</th>
-                            <th>Grade Entry Deadline</th>
-                            <th>Status</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for period in periods %}
-                        <tr>
-                            <td class="font-semibold">{{ period.academic_year }}</td>
-                            <td><span class="badge badge-outline">{{ period.get_term_display }}</span></td>
-                            <td class="text-sm">
-                                {{ period.start_date|date:"M d, Y" }} - {{ period.end_date|date:"M d, Y" }}
-                            </td>
-                            <td class="text-sm">{{ period.grade_entry_deadline|date:"M d, Y" }}</td>
-                            <td>
-                                <div class="flex gap-1">
-                                    {% if period.is_current %}
-                                    <span class="badge badge-success badge-sm">Current</span>
-                                    {% endif %}
-                                    {% if period.is_active %}
-                                    <span class="badge badge-info badge-sm">Active</span>
-                                    {% else %}
-                                    <span class="badge badge-ghost badge-sm">Inactive</span>
-                                    {% endif %}
-                                </div>
-                            </td>
-                            <td>
-                                <div class="dropdown dropdown-end">
-                                    <label tabindex="0" class="btn btn-ghost btn-xs">
-                                        Actions
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                                        </svg>
-                                    </label>
-                                    <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52">
-                                        <li><a href="{% url 'grading:period_detail' period.id %}">View Details</a></li>
-                                        <li><a href="{% url 'grading:period_update' period.id %}">Edit</a></li>
-                                        {% if not period.is_current %}
-                                        <li>
-                                            <form method="post" action="{% url 'grading:set_current_period' period.id %}">
-                                                {% csrf_token %}
-                                                <button type="submit" class="w-full text-left">Set as Current</button>
-                                            </form>
-                                        </li>
-                                        {% endif %}
-                                        <li>
-                                            <button class="text-error"
-                                                    hx-delete="{% url 'grading:period_delete' period.id %}"
-                                                    hx-confirm="Delete this grading period? This action cannot be undone.">
-                                                Delete
-                                            </button>
-                                        </li>
-                                    </ul>
-                                </div>
-                            </td>
-                        </tr>
-                        {% empty %}
-                        <tr>
-                            <td colspan="6" class="text-center py-12">
-                                <h3 class="text-xl font-semibold text-base-content/60">No grading periods found</h3>
-                                <p class="text-base-content/40 mt-2">Create your first grading period to get started</p>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+        <div class="stats shadow">
+            <div class="stat">
+                <div class="stat-figure text-success">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                </div>
+                <div class="stat-title">Current Period</div>
+                <div class="stat-value text-sm text-success">
+                    {% if current_period %}
+                        {{ current_period.term.name }}
+                    {% else %}
+                        None
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="stats shadow">
+            <div class="stat">
+                <div class="stat-figure text-info">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                    </svg>
+                </div>
+                <div class="stat-title">Active Periods</div>
+                <div class="stat-value text-info">
+                    {{ active_count }}
+                </div>
+            </div>
+        </div>
+
+        <div class="stats shadow">
+            <div class="stat">
+                <div class="stat-figure text-secondary">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                </div>
+                <div class="stat-title">This Year</div>
+                <div class="stat-value text-sm">{{ periods|length }}</div>
             </div>
         </div>
     </div>
+
+    <!-- Filters -->
+    <div class="flex gap-2 flex-wrap">
+        <a href="?status=all" class="btn btn-sm {% if status == 'all' %}btn-primary{% else %}btn-outline{% endif %}">
+            All Periods
+        </a>
+        <a href="?status=active" class="btn btn-sm {% if status == 'active' %}btn-primary{% else %}btn-outline{% endif %}">
+            Active Only
+        </a>
+        <a href="?status=current" class="btn btn-sm {% if status == 'current' %}btn-primary{% else %}btn-outline{% endif %}">
+            Current
+        </a>
+    </div>
+
+    <!-- Periods Grid -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {% for period in periods %}
+        <div class="card bg-base-100 shadow-xl hover:shadow-2xl transition-shadow border {% if period.is_current %}border-success border-2{% else %}border-base-300{% endif %}">
+            <div class="card-body">
+                <!-- Header with badges -->
+                <div class="flex justify-between items-start">
+                    <div class="flex-1">
+                        <h2 class="card-title text-xl">
+                            {{ period.term }}
+                            {% if period.is_current %}
+                            <div class="badge badge-success gap-1">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                </svg>
+                                Current
+                            </div>
+                            {% endif %}
+                        </h2>
+                        <p class="text-base-content/60 text-sm mt-1">{{ period.term.academic_year.name }}</p>
+                    </div>
+                    <div class="dropdown dropdown-end">
+                        <label tabindex="0" class="btn btn-ghost btn-sm btn-circle">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
+                            </svg>
+                        </label>
+                        <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow-lg bg-base-100 rounded-box w-52 border border-base-300">
+                            <li>
+                                <button onclick="editPeriod({{ period.id }})">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                    </svg>
+                                    Edit Period
+                                </button>
+                            </li>
+                            <li><a href="{% url 'grading:period_detail' period.id %}">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                </svg>
+                                View Details
+                            </a></li>
+                            {% if not period.is_current %}
+                            <li>
+                                <form method="post" action="{% url 'grading:set_current_period' period.id %}" onsubmit="return confirm('Set this as the current grading period?')">
+                                    {% csrf_token %}
+                                    <button type="submit" class="w-full text-left">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                        Set as Current
+                                    </button>
+                                </form>
+                            </li>
+                            {% endif %}
+                            <div class="divider my-0"></div>
+                            <li>
+                                <button onclick="confirmDelete({{ period.id }}, '{{ period.term }}')" class="text-error">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                    </svg>
+                                    Delete Period
+                                </button>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Period Dates -->
+                <div class="space-y-3 mt-4">
+                    <div class="flex items-start gap-3">
+                        <div class="w-5 h-5 text-primary flex-shrink-0 mt-0.5">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
+                        </div>
+                        <div>
+                            <p class="text-sm text-base-content/60">Term Duration</p>
+                            <p class="font-semibold">{{ period.start_date|date:"M d, Y" }} - {{ period.end_date|date:"M d, Y" }}</p>
+                        </div>
+                    </div>
+
+                    <div class="flex items-start gap-3">
+                        <div class="w-5 h-5 text-warning flex-shrink-0 mt-0.5">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                        </div>
+                        <div>
+                            <p class="text-sm text-base-content/60">Grade Entry Deadline</p>
+                            <p class="font-semibold">{{ period.grade_entry_deadline|date:"M d, Y" }}</p>
+                        </div>
+                    </div>
+
+                    {% if period.report_generation_date %}
+                    <div class="flex items-start gap-3">
+                        <div class="w-5 h-5 text-info flex-shrink-0 mt-0.5">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                            </svg>
+                        </div>
+                        <div>
+                            <p class="text-sm text-base-content/60">Report Generation</p>
+                            <p class="font-semibold">{{ period.report_generation_date|date:"M d, Y" }}</p>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Status Badges -->
+                <div class="card-actions justify-end mt-4">
+                    {% if period.is_active %}
+                    <div class="badge badge-info badge-outline">Active</div>
+                    {% else %}
+                    <div class="badge badge-ghost">Inactive</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-span-2">
+            <div class="card bg-base-100 shadow-xl">
+                <div class="card-body items-center text-center py-16">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-24 w-24 text-base-content/20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                    </svg>
+                    <h3 class="text-2xl font-bold text-base-content/60 mt-4">No grading periods found</h3>
+                    <p class="text-base-content/40 mt-2">Create your first grading period to get started with academic assessments</p>
+                    <button onclick="period_create_modal.showModal()" class="btn btn-primary mt-6">
+                        Create Grading Period
+                    </button>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
 </div>
+
+<!-- Create/Edit Modal -->
+<dialog id="period_create_modal" class="modal modal-bottom sm:modal-middle">
+    <div class="modal-box max-w-3xl">
+        <form method="dialog">
+            <button class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
+        </form>
+        <h3 class="font-bold text-2xl mb-1">Create Grading Period</h3>
+        <p class="text-base-content/60 text-sm mb-6">Set up grading configuration for a term</p>
+
+        <form method="post" action="{% url 'grading:period_create' %}" class="space-y-3">
+            {% csrf_token %}
+
+            <div class="form-control">
+                <label class="label py-1">
+                    <span class="label-text text-sm">Term <span class="text-error">*</span></span>
+                </label>
+                <select name="term" class="select select-bordered select-sm w-full" required>
+                    <option value="">-- Select Term --</option>
+                    {% for term in terms %}
+                        <option value="{{ term.id }}">{{ term }}</option>
+                    {% endfor %}
+                </select>
+                <label class="label py-1">
+                    <span class="label-text-alt text-xs">Auto-filled from school settings</span>
+                </label>
+            </div>
+
+            <div class="divider text-xs my-2">Period Dates</div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div class="form-control">
+                    <label class="label py-1">
+                        <span class="label-text text-sm">Start Date <span class="text-error">*</span></span>
+                    </label>
+                    <input type="date" name="start_date" class="input input-bordered input-sm w-full" required>
+                </div>
+                <div class="form-control">
+                    <label class="label py-1">
+                        <span class="label-text text-sm">End Date <span class="text-error">*</span></span>
+                    </label>
+                    <input type="date" name="end_date" class="input input-bordered input-sm w-full" required>
+                </div>
+            </div>
+
+            <div class="divider text-xs my-2">Deadlines</div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div class="form-control">
+                    <label class="label py-1">
+                        <span class="label-text text-sm">Grade Entry Deadline <span class="text-error">*</span></span>
+                    </label>
+                    <input type="date" name="grade_entry_deadline" class="input input-bordered input-sm w-full" required>
+                    <label class="label py-1">
+                        <span class="label-text-alt text-xs">Last date for teachers to enter grades</span>
+                    </label>
+                </div>
+                <div class="form-control">
+                    <label class="label py-1">
+                        <span class="label-text text-sm">Report Generation Date</span>
+                    </label>
+                    <input type="date" name="report_generation_date" class="input input-bordered input-sm w-full">
+                    <label class="label py-1">
+                        <span class="label-text-alt text-xs">When reports will be generated</span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="divider text-xs my-2">Status</div>
+
+            <div class="flex gap-6">
+                <div class="form-control">
+                    <label class="label cursor-pointer gap-2 py-1">
+                        <input type="checkbox" name="is_current" class="checkbox checkbox-primary checkbox-sm">
+                        <div>
+                            <span class="label-text text-sm">Set as Current</span>
+                            <div class="text-xs text-base-content/60">Mark as active period</div>
+                        </div>
+                    </label>
+                </div>
+                <div class="form-control">
+                    <label class="label cursor-pointer gap-2 py-1">
+                        <input type="checkbox" name="is_active" checked class="checkbox checkbox-primary checkbox-sm">
+                        <span class="label-text text-sm">Active</span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="modal-action pt-3">
+                <button type="button" onclick="period_create_modal.close()" class="btn btn-ghost btn-sm">Cancel</button>
+                <button type="submit" class="btn btn-primary btn-sm">Create Grading Period</button>
+            </div>
+        </form>
+    </div>
+    <form method="dialog" class="modal-backdrop">
+        <button>close</button>
+    </form>
+</dialog>
+
+<!-- Delete Confirmation Modal -->
+<dialog id="delete_confirm_modal" class="modal modal-bottom sm:modal-middle">
+    <div class="modal-box">
+        <h3 class="font-bold text-lg text-error">Delete Grading Period</h3>
+        <p class="py-3 text-sm">Are you sure you want to delete <strong id="delete_period_name"></strong>?</p>
+        <p class="text-xs text-base-content/60">This action cannot be undone. All associated assessments and grades will be affected.</p>
+        <div class="modal-action pt-3">
+            <form method="dialog">
+                <button class="btn btn-ghost btn-sm">Cancel</button>
+            </form>
+            <form id="delete_form" method="post" action="">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-error btn-sm">Delete Period</button>
+            </form>
+        </div>
+    </div>
+    <form method="dialog" class="modal-backdrop">
+        <button>close</button>
+    </form>
+</dialog>
+
+<script>
+// Term data for auto-filling dates
+const termData = {
+    {% for term in terms %}
+    {{ term.id }}: {
+        startDate: '{{ term.start_date|date:"Y-m-d" }}',
+        endDate: '{{ term.end_date|date:"Y-m-d" }}',
+        name: '{{ term }}'
+    },
+    {% endfor %}
+};
+
+// Auto-fill dates when term is selected
+document.addEventListener('DOMContentLoaded', function() {
+    const termSelect = document.querySelector('select[name="term"]');
+    const startDateInput = document.querySelector('input[name="start_date"]');
+    const endDateInput = document.querySelector('input[name="end_date"]');
+
+    if (termSelect) {
+        termSelect.addEventListener('change', function() {
+            const termId = this.value;
+            if (termId && termData[termId]) {
+                startDateInput.value = termData[termId].startDate;
+                endDateInput.value = termData[termId].endDate;
+            }
+        });
+
+        // Auto-select first term if available
+        if (termSelect.options.length > 1 && !termSelect.value) {
+            termSelect.selectedIndex = 1;
+            termSelect.dispatchEvent(new Event('change'));
+        }
+    }
+});
+
+function confirmDelete(periodId, periodName) {
+    document.getElementById('delete_period_name').textContent = periodName;
+    document.getElementById('delete_form').action = `/grading/periods/${periodId}/delete/`;
+    delete_confirm_modal.showModal();
+}
+
+function editPeriod(periodId) {
+    window.location.href = `/grading/periods/${periodId}/edit/`;
+}
+</script>
 {% endblock %}

@@ -1,5 +1,5 @@
 from django import forms
-from .models import Subject, Class, ClassSubject, StudentEnrollment
+from .models import Subject, Class, ClassSubject, StudentEnrollment, House
 from teachers.models import Teacher
 from students.models import Student
 
@@ -40,7 +40,7 @@ class SubjectForm(forms.ModelForm):
 
 
 class ClassForm(forms.ModelForm):
-    """Form for creating and editing classes"""
+    """Form for creating and editing classes following Ghana's Education System"""
 
     class Meta:
         model = Class
@@ -69,10 +69,8 @@ class ClassForm(forms.ModelForm):
                 'max': 200,
                 'required': True
             }),
-            'academic_year': forms.TextInput(attrs={
-                'class': 'input input-bordered input-sm w-full',
-                'placeholder': 'e.g., 2024/2025',
-                'required': True
+            'academic_year': forms.Select(attrs={
+                'class': 'select select-bordered select-sm w-full'
             }),
             'room_number': forms.TextInput(attrs={
                 'class': 'input input-bordered input-sm w-full',
@@ -82,13 +80,59 @@ class ClassForm(forms.ModelForm):
                 'class': 'checkbox checkbox-primary'
             }),
         }
-    
+        help_texts = {
+            'grade_level': 'Select from Early Childhood (Nursery, KG), Basic Education (Basic 1-9), or SHS (SHS 1-3)',
+            'section': 'Section identifier (e.g., A, B, C). Optional but recommended for multiple classes per grade',
+            'programme': 'Academic programme - Required for SHS classes only (Science, Arts, Business, etc.)',
+            'academic_year': 'Select the academic year for this class',
+        }
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # Only show active teachers and programmes
+        # Only show active teachers, programmes, and academic years
         self.fields['class_teacher'].queryset = Teacher.objects.filter(is_active=True)
         from students.models import Programme
+        from core.models import AcademicYear
         self.fields['programme'].queryset = Programme.objects.filter(is_active=True)
+        self.fields['academic_year'].queryset = AcademicYear.objects.all().order_by('-start_date')
+        # Make programme field help text more prominent
+        self.fields['programme'].help_text = 'Only applicable to Senior High School (SHS 1-3) classes'
+
+    def clean(self):
+        """Validate form according to Ghana's education system rules"""
+        cleaned_data = super().clean()
+        grade_level = cleaned_data.get('grade_level')
+        programme = cleaned_data.get('programme')
+
+        if grade_level and programme:
+            # Use Class model constants for validation
+            # Non-SHS classes should not have a programme
+            if grade_level not in Class.SHS_GRADES:
+                raise forms.ValidationError({
+                    'programme': f'Programmes are only applicable to Senior High School (SHS) classes. '
+                                 f'{grade_level} is a {self._get_school_level_name(grade_level)} class.'
+                })
+
+        return cleaned_data
+
+    def _get_school_level_name(self, grade_level):
+        """Helper to get school level name for error messages"""
+        if grade_level in Class.EARLY_CHILDHOOD_GRADES:
+            return 'Early Childhood'
+        elif grade_level in Class.PRIMARY_GRADES:
+            return 'Primary School'
+        elif grade_level in Class.JHS_GRADES:
+            return 'Junior High School'
+        return 'Unknown'
+
+    def save(self, commit=True):
+        """Save the form and validate the model"""
+        instance = super().save(commit=False)
+        if commit:
+            # Call full_clean to run model validation
+            instance.full_clean()
+            instance.save()
+        return instance
 
 
 class ClassSubjectForm(forms.ModelForm):
@@ -223,3 +267,44 @@ class BulkEnrollmentForm(forms.Form):
         }),
         label='Enrollment Date'
     )
+
+
+class HouseForm(forms.ModelForm):
+    """Form for creating and editing houses"""
+
+    class Meta:
+        model = House
+        fields = ['name', 'color', 'house_master', 'motto', 'description', 'is_active']
+        widgets = {
+            'name': forms.TextInput(attrs={
+                'class': 'input input-bordered input-sm w-full',
+                'placeholder': 'e.g., Red House, Blue House, Aggrey House',
+                'required': True
+            }),
+            'color': forms.TextInput(attrs={
+                'class': 'input input-bordered input-sm w-full',
+                'type': 'color',
+                'required': True
+            }),
+            'house_master': forms.Select(attrs={
+                'class': 'select select-bordered select-sm w-full'
+            }),
+            'motto': forms.TextInput(attrs={
+                'class': 'input input-bordered input-sm w-full',
+                'placeholder': 'House motto or slogan (optional)'
+            }),
+            'description': forms.Textarea(attrs={
+                'class': 'textarea textarea-bordered w-full',
+                'rows': 3,
+                'placeholder': 'Additional information about the house (optional)'
+            }),
+            'is_active': forms.CheckboxInput(attrs={
+                'class': 'checkbox checkbox-primary'
+            }),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Only show active teachers
+        self.fields['house_master'].queryset = Teacher.objects.filter(is_active=True)
+        self.fields['house_master'].required = False

@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Auth{% endblock %} | {{ school_settings.short_name|default:'SmartSIS' }}</title>
+    <title>{% block title %}Auth{% endblock %} | {{ school_name }}</title>
     
     <link href="https://cdn.jsdelivr.net/npm/daisyui@4.4.19/dist/full.min.css" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
@@ -34,7 +34,7 @@
                             {% endif %}
                         </div>
                         {% block branding %}
-                            <h1 class="text-3xl font-bold mb-3">{{ school_settings.short_name|default:'SmartSIS' }}</h1>
+                            <h1 class="text-3xl font-bold mb-3">{{ school_name }}</h1>
                             <p class="text-base-content/60 text-sm mb-8">
                                 {{ school_settings.motto|default:'School Management System' }}
                             </p>
@@ -42,7 +42,7 @@
                     </div>
                     
                     <div class="pt-8 text-xs opacity-60">
-                        &copy; {% now "Y" %} {{ school_settings.short_name|default:'SmartSIS' }}
+                        &copy; {% now "Y" %} {{ school_name }}
                     </div>
                 </div>
                 

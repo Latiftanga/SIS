@@ -47,7 +47,7 @@ def grading_dashboard(request: HttpRequest) -> HttpResponse:
 @school_admin_required
 def grading_period_list(request: HttpRequest) -> HttpResponse:
     """List all grading periods"""
-    periods = GradingPeriod.objects.all().order_by('-academic_year', '-term')
+    periods = GradingPeriod.objects.select_related('term__academic_year').order_by('-term__academic_year__start_date', '-term__number')
 
     # Filter by status
     status = request.GET.get('status', 'all')
@@ -59,12 +59,24 @@ def grading_period_list(request: HttpRequest) -> HttpResponse:
     # Search
     search = request.GET.get('search', '')
     if search:
-        periods = periods.filter(academic_year__icontains=search)
+        periods = periods.filter(term__academic_year__name__icontains=search)
+
+    # Get all terms for the create modal
+    from core.models import Term
+    terms = Term.objects.select_related('academic_year').order_by('-academic_year__start_date', 'number')
+
+    # Calculate statistics
+    all_periods = GradingPeriod.objects.select_related('term__academic_year').all()
+    active_count = all_periods.filter(is_active=True).count()
+    current_period = all_periods.filter(is_current=True).first()
 
     context = {
         'periods': periods,
         'search': search,
         'status': status,
+        'terms': terms,
+        'active_count': active_count,
+        'current_period': current_period,
     }
 
     return render(request, 'grading/period_list.html', context)
@@ -79,7 +91,7 @@ def grading_period_create(request: HttpRequest) -> HttpResponse:
             period = form.save()
             messages.success(
                 request,
-                f'Grading period "{period.academic_year} - {period.get_term_display()}" created successfully!'
+                f'Grading period "{period.term}" created successfully!'
             )
             return redirect('grading:period_list')
     else:
@@ -120,7 +132,7 @@ def grading_period_edit(request: HttpRequest, pk: int) -> HttpResponse:
             period = form.save()
             messages.success(
                 request,
-                f'Grading period "{period.academic_year} - {period.get_term_display()}" updated successfully!'
+                f'Grading period "{period.term}" updated successfully!'
             )
             return redirect('grading:period_list')
     else:
@@ -147,7 +159,7 @@ def grading_period_delete(request: HttpRequest, pk: int) -> HttpResponse:
         )
         return redirect('grading:period_detail', pk=pk)
 
-    period_name = f"{period.academic_year} - {period.get_term_display()}"
+    period_name = f"{period.term}"
     period.delete()
     messages.success(request, f'Grading period "{period_name}" deleted successfully!')
 
@@ -166,7 +178,7 @@ def set_current_period(request: HttpRequest, pk: int) -> HttpResponse:
 
     messages.success(
         request,
-        f'"{period.academic_year} - {period.get_term_display()}" is now the current grading period.'
+        f'"{period.term}" is now the current grading period.'
     )
 
     return redirect('grading:period_list')

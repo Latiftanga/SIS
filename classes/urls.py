@@ -29,4 +29,12 @@ urlpatterns = [
     # Promotion/Academic Year Management
     path('<int:class_pk>/promote/', views.class_promote, name='class_promote'),
     path('student/<int:student_pk>/transcript/', views.student_transcript, name='student_transcript'),
+    path('student/<int:student_pk>/transcript/pdf/', views.student_transcript_pdf, name='student_transcript_pdf'),
+
+    # House Management URLs
+    path('houses/', views.house_list, name='house_list'),
+    path('houses/create/', views.house_create, name='house_create'),
+    path('houses/<int:pk>/', views.house_detail, name='house_detail'),
+    path('houses/<int:pk>/edit/', views.house_edit, name='house_edit'),
+    path('houses/<int:pk>/delete/', views.house_delete, name='house_delete'),
 ]

@@ -117,7 +117,7 @@
                                     <span class="badge badge-warning badge-xs mt-1">Already enrolled in another class</span>
                                     {% endif %}
                                 </td>
-                                <td>{{ student.current_grade }}</td>
+                                <td><span class="badge badge-primary badge-sm">{{ student.get_current_grade }}</span></td>
                                 <td>{{ student.gender }}</td>
                                 <td class="text-sm text-base-content/60">{{ student.guardian_name }}</td>
                             </tr>

@@ -2,91 +2,216 @@
 
 {% block title %}Academic Transcript - {{ student.get_full_name }}{% endblock %}
 
+{% block extra_head %}
+<style>
+    @media print {
+        .no-print {
+            display: none !important;
+        }
+
+        body {
+            background: white !important;
+        }
+
+        .card, .stat {
+            box-shadow: none !important;
+            border: 1px solid #e5e7eb;
+        }
+
+        h1, h2, h3 {
+            color: black !important;
+        }
+
+        .badge {
+            border: 1px solid currentColor;
+        }
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="max-w-5xl mx-auto">
+<div class="max-w-7xl mx-auto">
     <!-- Header -->
     <div class="mb-6">
         <div class="flex items-center justify-between">
             <div>
-                <h1 class="text-2xl font-bold">Academic Transcript</h1>
-                <p class="text-base-content/60 text-sm mt-1">Complete enrollment history</p>
+                <h1 class="text-3xl font-bold text-primary">Academic Transcript</h1>
+                <p class="text-base-content/60 mt-1">Complete enrollment and academic history for {{ student.get_full_name }}</p>
             </div>
-            <a href="{% url 'students:detail' student.id %}" class="btn btn-ghost btn-sm">Back to Student</a>
+            <div class="flex gap-2 no-print">
+                <button onclick="window.print()" class="btn btn-info btn-sm">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                    </svg>
+                    Print
+                </button>
+                <a href="{% url 'classes:student_transcript_pdf' student.id %}" class="btn btn-success btn-sm" hx-boost="false">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    Export PDF
+                </a>
+                <a href="{% url 'students:detail' student.id %}" class="btn btn-primary btn-sm" hx-boost="false">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
+                    Student Profile
+                </a>
+                <a href="{% url 'classes:class_list' %}" class="btn btn-ghost btn-sm" hx-boost="false">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                    </svg>
+                    Back
+                </a>
+            </div>
         </div>
     </div>
 
-    <!-- Student Info Card -->
-    <div class="card bg-base-100 shadow-xl mb-6">
-        <div class="card-body">
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
-                    <div class="text-sm text-base-content/60">Student Name</div>
-                    <div class="text-lg font-bold">{{ student.get_full_name }}</div>
-                </div>
-                <div>
-                    <div class="text-sm text-base-content/60">Student ID</div>
-                    <div class="text-lg font-bold">{{ student.student_id }}</div>
-                </div>
-                <div>
-                    <div class="text-sm text-base-content/60">Current Status</div>
+    <!-- Print Header (only visible when printing) -->
+    <div class="hidden print:block mb-6 pb-4 border-b-2 border-primary">
+        <h1 class="text-2xl font-bold text-center">Academic Transcript</h1>
+        <p class="text-center text-sm mt-2">{{ student.get_full_name }} - {{ student.student_id }}</p>
+    </div>
+
+    <!-- Quick Stats -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+        <div class="stat bg-base-100 shadow-xl rounded-box border-t-4 border-primary">
+            <div class="stat-title">Student ID</div>
+            <div class="stat-value text-primary text-2xl">{{ student.student_id }}</div>
+            <div class="stat-desc">{{ student.get_full_name }}</div>
+        </div>
+        <div class="stat bg-base-100 shadow-xl rounded-box border-t-4 border-accent">
+            <div class="stat-title">Current Status</div>
+            <div class="stat-value text-accent text-lg">
+                {% if current_enrollment %}
+                Enrolled
+                {% else %}
+                Not Enrolled
+                {% endif %}
+            </div>
+            <div class="stat-desc">
+                {% if current_enrollment %}
+                {{ current_enrollment.class_obj.name }}
+                {% else %}
+                No active enrollment
+                {% endif %}
+            </div>
+        </div>
+        <div class="stat bg-base-100 shadow-xl rounded-box border-t-4 border-secondary">
+            <div class="stat-title">Total Enrollments</div>
+            <div class="stat-value text-secondary text-2xl">{{ enrollments.count }}</div>
+            <div class="stat-desc">Academic years</div>
+        </div>
+        <div class="stat bg-base-100 shadow-xl rounded-box border-t-4 border-info">
+            <div class="stat-title">Age</div>
+            <div class="stat-value text-info text-2xl">{{ student.get_age }}</div>
+            <div class="stat-desc">Born {{ student.date_of_birth|date:"M d, Y" }}</div>
+        </div>
+    </div>
+
+    <!-- Student Information -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+        <!-- Personal Info -->
+        <div class="card bg-base-100 shadow-xl border-t-4 border-primary">
+            <div class="card-body">
+                <h2 class="card-title text-primary flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
+                    Personal Information
+                </h2>
+                <div class="space-y-3">
                     <div>
-                        {% if current_enrollment %}
-                        <span class="badge badge-success">
-                            Enrolled in {{ current_enrollment.class_obj.name }}
-                        </span>
-                        {% else %}
-                        <span class="badge badge-ghost">Not Currently Enrolled</span>
-                        {% endif %}
+                        <div class="text-sm text-base-content/60 font-semibold">Full Name</div>
+                        <div class="text-base">{{ student.get_full_name }}</div>
                     </div>
+                    <div>
+                        <div class="text-sm text-base-content/60 font-semibold">Gender</div>
+                        <div class="text-base">{{ student.gender }}</div>
+                    </div>
+                    <div>
+                        <div class="text-sm text-base-content/60 font-semibold">Admission Date</div>
+                        <div class="text-base">{{ student.admission_date|date:"F d, Y" }}</div>
+                    </div>
+                    {% if student.email %}
+                    <div>
+                        <div class="text-sm text-base-content/60 font-semibold">Email</div>
+                        <div class="text-base">{{ student.email }}</div>
+                    </div>
+                    {% endif %}
                 </div>
             </div>
+        </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
-                <div>
-                    <div class="text-sm text-base-content/60">Date of Birth</div>
-                    <div class="font-semibold">{{ student.date_of_birth|date:"M d, Y" }}</div>
-                </div>
-                <div>
-                    <div class="text-sm text-base-content/60">Admission Date</div>
-                    <div class="font-semibold">{{ student.admission_date|date:"M d, Y" }}</div>
-                </div>
-                <div>
-                    <div class="text-sm text-base-content/60">Gender</div>
-                    <div class="font-semibold">{{ student.gender }}</div>
+        <!-- Guardian Info -->
+        <div class="card bg-base-100 shadow-xl border-t-4 border-accent">
+            <div class="card-body">
+                <h2 class="card-title text-accent flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                    </svg>
+                    Guardian Information
+                </h2>
+                <div class="space-y-3">
+                    <div>
+                        <div class="text-sm text-base-content/60 font-semibold">Guardian Name</div>
+                        <div class="text-base">{{ student.guardian_name }}</div>
+                    </div>
+                    <div>
+                        <div class="text-sm text-base-content/60 font-semibold">Relationship</div>
+                        <div class="text-base">{{ student.guardian_relationship }}</div>
+                    </div>
+                    <div>
+                        <div class="text-sm text-base-content/60 font-semibold">Phone</div>
+                        <div class="text-base">{{ student.guardian_phone }}</div>
+                    </div>
+                    {% if student.guardian_email %}
+                    <div>
+                        <div class="text-sm text-base-content/60 font-semibold">Email</div>
+                        <div class="text-base">{{ student.guardian_email }}</div>
+                    </div>
+                    {% endif %}
                 </div>
             </div>
         </div>
     </div>
 
     <!-- Enrollment History -->
-    <div class="card bg-base-100 shadow-xl">
+    <div class="card bg-base-100 shadow-xl border-t-4 border-secondary">
         <div class="card-body">
-            <h2 class="card-title mb-4">Enrollment History</h2>
+            <h2 class="card-title text-secondary mb-4 flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                Academic Enrollment History
+            </h2>
 
             {% if enrollments %}
             <div class="overflow-x-auto">
                 <table class="table table-zebra">
                     <thead>
                         <tr>
-                            <th>Academic Year</th>
-                            <th>Class</th>
-                            <th>Grade Level</th>
-                            <th>Enrollment Date</th>
-                            <th>Completion Date</th>
-                            <th>Status</th>
-                            <th>Result</th>
+                            <th class="bg-secondary text-secondary-content">Academic Year</th>
+                            <th class="bg-secondary text-secondary-content">Class</th>
+                            <th class="bg-secondary text-secondary-content">Grade Level</th>
+                            <th class="bg-secondary text-secondary-content">Enrollment Date</th>
+                            <th class="bg-secondary text-secondary-content">Completion Date</th>
+                            <th class="bg-secondary text-secondary-content">Status</th>
+                            <th class="bg-secondary text-secondary-content">Result</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for enrollment in enrollments %}
-                        <tr {% if enrollment.is_active %}class="bg-primary/10"{% endif %}>
+                        <tr {% if enrollment.is_active %}class="bg-success/10 border-l-4 border-success"{% endif %}>
                             <td class="font-semibold">{{ enrollment.academic_year }}</td>
                             <td>
-                                <a href="{% url 'classes:class_detail' enrollment.class_obj.id %}" class="link">
+                                <a href="{% url 'classes:class_detail' enrollment.class_obj.id %}" class="link link-primary font-medium" hx-boost="false">
                                     {{ enrollment.class_obj.name }}
                                 </a>
                             </td>
-                            <td>{{ enrollment.class_obj.grade_level }}</td>
+                            <td>
+                                <span class="badge badge-outline">{{ enrollment.class_obj.grade_level }}</span>
+                            </td>
                             <td>{{ enrollment.enrollment_date|date:"M d, Y" }}</td>
                             <td>
                                 {% if enrollment.completion_date %}
@@ -97,7 +222,12 @@
                             </td>
                             <td>
                                 {% if enrollment.status == 'enrolled' %}
-                                <span class="badge badge-success badge-sm">Enrolled</span>
+                                <span class="badge badge-success badge-sm gap-1">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                    </svg>
+                                    Enrolled
+                                </span>
                                 {% elif enrollment.status == 'completed' %}
                                 <span class="badge badge-info badge-sm">Completed</span>
                                 {% elif enrollment.status == 'withdrawn' %}
@@ -118,7 +248,7 @@
                                 {% elif enrollment.final_result == 'withdrawn' %}
                                 <span class="badge badge-error badge-sm">✗ Withdrawn</span>
                                 {% elif enrollment.final_result == 'pending' %}
-                                <span class="badge badge-ghost badge-sm">Pending</span>
+                                <span class="badge badge-ghost badge-sm">⏳ Pending</span>
                                 {% endif %}
                             </td>
                         </tr>
@@ -128,56 +258,47 @@
             </div>
 
             <!-- Summary Stats -->
-            <div class="stats stats-horizontal shadow mt-6 w-full">
-                <div class="stat">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
+                <div class="stat bg-primary/10 rounded-lg border-l-4 border-primary">
                     <div class="stat-title">Total Enrollments</div>
                     <div class="stat-value text-primary">{{ enrollments.count }}</div>
+                    <div class="stat-desc">Academic years completed</div>
                 </div>
-                <div class="stat">
+                <div class="stat bg-success/10 rounded-lg border-l-4 border-success">
                     <div class="stat-title">Promotions</div>
                     <div class="stat-value text-success">
-                        {{ enrollments|length|add:"-1" }}
+                        {{ enrollments.filter|length }}
                     </div>
+                    <div class="stat-desc">Successful progressions</div>
                 </div>
-                <div class="stat">
-                    <div class="stat-title">Years in School</div>
+                <div class="stat bg-accent/10 rounded-lg border-l-4 border-accent">
+                    <div class="stat-title">Current Progress</div>
                     <div class="stat-value text-accent">
-                        {% widthratio enrollments.count 1 1 %}
+                        {% if current_enrollment %}
+                        Active
+                        {% else %}
+                        Complete
+                        {% endif %}
+                    </div>
+                    <div class="stat-desc">
+                        {% if current_enrollment %}
+                        Currently enrolled
+                        {% else %}
+                        No active enrollment
+                        {% endif %}
                     </div>
                 </div>
             </div>
 
             {% else %}
             <div class="text-center py-12">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mx-auto text-base-content/20 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
                 <h3 class="text-xl font-semibold text-base-content/60">No Enrollment History</h3>
-                <p class="text-base-content/40 mt-2">This student has no enrollment records</p>
+                <p class="text-base-content/40 mt-2">This student has no enrollment records yet</p>
             </div>
             {% endif %}
-        </div>
-    </div>
-
-    <!-- Guardian Information -->
-    <div class="card bg-base-100 shadow-xl mt-6">
-        <div class="card-body">
-            <h2 class="card-title mb-4">Guardian Information</h2>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                    <div class="text-sm text-base-content/60">Guardian Name</div>
-                    <div class="font-semibold">{{ student.guardian_name }}</div>
-                </div>
-                <div>
-                    <div class="text-sm text-base-content/60">Relationship</div>
-                    <div class="font-semibold">{{ student.guardian_relationship }}</div>
-                </div>
-                <div>
-                    <div class="text-sm text-base-content/60">Phone</div>
-                    <div class="font-semibold">{{ student.guardian_phone }}</div>
-                </div>
-                <div>
-                    <div class="text-sm text-base-content/60">Email</div>
-                    <div class="font-semibold">{{ student.guardian_email|default:"—" }}</div>
-                </div>
-            </div>
         </div>
     </div>
 </div>

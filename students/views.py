@@ -7,6 +7,9 @@ from django.http import HttpRequest, HttpResponse
 from django.db.models import Q
 from django.utils import timezone
 from django.template.loader import render_to_string
+from django.core.paginator import Paginator
+from weasyprint import HTML, CSS
+from weasyprint.text.fonts import FontConfiguration
 from .models import Student, Programme
 from .forms import StudentCreateForm, StudentBulkImportForm, ProgrammeForm
 from accounts.models import User
@@ -30,19 +33,22 @@ def student_list(request: HttpRequest) -> HttpResponse:
         students = students.filter(is_active=True)
     elif status == 'inactive':
         students = students.filter(is_active=False)
-    else:
-        # Default to showing only active students
-        students = students.filter(is_active=True)
 
     # Gender filter
     gender = request.GET.get('gender', '')
     if gender:
         students = students.filter(gender=gender)
 
-    # Grade filter
-    grade = request.GET.get('grade', '')
-    if grade:
-        students = students.filter(current_grade=grade)
+    # Class filter (grade is determined by class enrollment)
+    class_filter = request.GET.get('class', '')
+    if class_filter:
+        from classes.models import StudentEnrollment
+        # Get students enrolled in the specified class
+        enrolled_students = StudentEnrollment.objects.filter(
+            class_obj__name=class_filter,
+            is_active=True
+        ).values_list('student_id', flat=True)
+        students = students.filter(id__in=enrolled_students)
 
     # Search functionality
     search = request.GET.get('search', '')
@@ -54,21 +60,22 @@ def student_list(request: HttpRequest) -> HttpResponse:
             Q(guardian_name__icontains=search)
         )
 
-    # Get unique grades for filter dropdown
-    grades = Student.objects.filter(is_active=True).values_list('current_grade', flat=True).distinct().order_by('current_grade')
+    # Get unique classes for filter dropdown
+    from classes.models import Class
+    classes = Class.objects.filter(is_active=True).order_by('grade_level', 'section')
 
     context = {
         'students': students,
         'search': search,
         'status': status,
         'gender': gender,
-        'grade': grade,
-        'grades': grades,
+        'class_filter': class_filter,
+        'classes': classes,
     }
 
-    # If HTMX request for search/filters, return only the table rows
-    if request.headers.get('HX-Request') and request.headers.get('HX-Target') == 'students-table':
-        return render(request, 'students/partials/student_rows.html', context)
+    # Return partial template for HTMX requests
+    if request.headers.get('HX-Request'):
+        return render(request, 'students/partials/student_list_content.html', context)
 
     # Full page render
     return render(request, 'students/student_list.html', context)
@@ -95,29 +102,197 @@ def student_create(request: HttpRequest) -> HttpResponse:
             except Exception as e:
                 messages.error(request, f'Error creating student: {str(e)}')
     else:
+        # GET request - show empty form
         form = StudentCreateForm()
 
-    return render(request, 'students/student_create.html', {'form': form})
+    context = {
+        'form': form,
+        'action': 'Add'
+    }
+
+    # Return partial template for HTMX requests
+    if request.headers.get('HX-Request'):
+        return render(request, 'students/partials/student_form_content.html', context)
+
+    # Full page render
+    return render(request, 'students/student_create.html', context)
 
 
 @school_admin_required
 def student_detail(request: HttpRequest, pk: int) -> HttpResponse:
     """View student details"""
     student = get_object_or_404(Student, pk=pk)
+
+    # For HTMX requests, return inline detail content
+    if request.headers.get('HX-Request'):
+        response = render(request, 'students/partials/student_detail_inline.html', {'student': student})
+        response['HX-Trigger'] = 'formLoaded'
+        return response
+
     return render(request, 'students/student_detail_page.html', {
         'student': student
     })
 
 
 @school_admin_required
-@require_http_methods(["DELETE"])
+def student_detail_pdf(request: HttpRequest, pk: int) -> HttpResponse:
+    """Generate and download PDF of student details"""
+    student = get_object_or_404(Student, pk=pk)
+
+    # Render the HTML template for PDF
+    html_string = render_to_string('students/student_detail_pdf.html', {
+        'student': student
+    }, request=request)
+
+    # Create PDF
+    font_config = FontConfiguration()
+    html = HTML(string=html_string, base_url=request.build_absolute_uri())
+
+    # Generate PDF with custom CSS
+    pdf_css = CSS(string='''
+        @page {
+            size: A4;
+            margin: 2cm;
+        }
+        body {
+            font-family: 'DejaVu Sans', Arial, sans-serif;
+            font-size: 11pt;
+            line-height: 1.6;
+            color: #333;
+        }
+        h1 {
+            color: #2563eb;
+            font-size: 24pt;
+            margin-bottom: 10pt;
+            border-bottom: 2pt solid #2563eb;
+            padding-bottom: 5pt;
+        }
+        h2 {
+            color: #1e40af;
+            font-size: 16pt;
+            margin-top: 15pt;
+            margin-bottom: 8pt;
+            border-bottom: 1pt solid #ddd;
+            padding-bottom: 3pt;
+        }
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10pt;
+            margin-bottom: 15pt;
+        }
+        .info-item {
+            margin-bottom: 8pt;
+        }
+        .info-label {
+            font-weight: bold;
+            color: #666;
+            font-size: 9pt;
+            text-transform: uppercase;
+        }
+        .info-value {
+            font-size: 11pt;
+            color: #333;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10pt;
+        }
+        th {
+            background-color: #2563eb;
+            color: white;
+            padding: 8pt;
+            text-align: left;
+            font-weight: bold;
+        }
+        td {
+            padding: 6pt 8pt;
+            border-bottom: 1pt solid #ddd;
+        }
+        tr:nth-child(even) {
+            background-color: #f9fafb;
+        }
+        .header-section {
+            margin-bottom: 20pt;
+            padding-bottom: 15pt;
+            border-bottom: 2pt solid #e5e7eb;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10pt;
+            margin-bottom: 20pt;
+        }
+        .stat-card {
+            background: #f3f4f6;
+            padding: 10pt;
+            border-left: 3pt solid #2563eb;
+        }
+        .stat-label {
+            font-size: 9pt;
+            color: #666;
+            text-transform: uppercase;
+        }
+        .stat-value {
+            font-size: 16pt;
+            font-weight: bold;
+            color: #1e40af;
+        }
+    ''', font_config=font_config)
+
+    pdf = html.write_pdf(stylesheets=[pdf_css], font_config=font_config)
+
+    # Create response
+    response = HttpResponse(pdf, content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="student_{student.student_id}_{student.get_full_name().replace(" ", "_")}.pdf"'
+
+    return response
+
+
+@school_admin_required
+def student_edit(request: HttpRequest, pk: int) -> HttpResponse:
+    """Edit student information"""
+    student = get_object_or_404(Student, pk=pk)
+
+    if request.method == 'POST':
+        form = StudentCreateForm(request.POST, request.FILES, instance=student)
+        if form.is_valid():
+            try:
+                # Save changes
+                student, _ = form.save(request=request)
+
+                messages.success(request, f'Student {student.get_full_name()} updated successfully!')
+                return redirect('students:list')
+            except Exception as e:
+                messages.error(request, f'Error updating student: {str(e)}')
+    else:
+        # GET request - show form with student data
+        form = StudentCreateForm(instance=student)
+
+    context = {
+        'form': form,
+        'action': 'Edit',
+        'student': student
+    }
+
+    # Return partial template for HTMX requests
+    if request.headers.get('HX-Request'):
+        return render(request, 'students/partials/student_form_content.html', context)
+
+    # Full page render
+    return render(request, 'students/student_create.html', context)
+
+
+@school_admin_required
+@require_http_methods(["POST", "DELETE"])
 def student_delete(request: HttpRequest, pk: int) -> HttpResponse:
     """Soft delete student"""
     student = get_object_or_404(Student, pk=pk)
     student.is_active = False
     student.save()
 
-    # Return empty response to remove the row
+    # Return empty response to trigger refresh
     return HttpResponse(headers={'HX-Trigger': 'studentDeleted'})
 
 
@@ -152,12 +327,35 @@ def student_bulk_import(request: HttpRequest) -> HttpResponse:
                     'create_accounts': create_accounts,
                 }
 
+                # For HTMX requests, return preview content partial
+                if request.headers.get('HX-Request'):
+                    response = render(request, 'students/partials/bulk_import_preview_content.html', context)
+                    response['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+                    response['Pragma'] = 'no-cache'
+                    response['Expires'] = '0'
+                    return response
+
                 return render(request, 'students/bulk_import_preview.html', context)
 
             except Exception as e:
                 messages.error(request, f'Error parsing file: {str(e)}')
+                # For HTMX requests, return form with error
+                if request.headers.get('HX-Request'):
+                    response = render(request, 'students/partials/bulk_import_content.html', {'form': form})
+                    response['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+                    response['Pragma'] = 'no-cache'
+                    response['Expires'] = '0'
+                    return response
     else:
         form = StudentBulkImportForm()
+
+    # For HTMX requests, return content partial
+    if request.headers.get('HX-Request'):
+        response = render(request, 'students/partials/bulk_import_content.html', {'form': form})
+        response['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+        response['Pragma'] = 'no-cache'
+        response['Expires'] = '0'
+        return response
 
     return render(request, 'students/bulk_import.html', {'form': form})
 
@@ -199,7 +397,6 @@ def student_bulk_import_process(request: HttpRequest) -> HttpResponse:
                 student_id=student_data['student_id'],
                 admission_date=student_data['admission_date'],
                 date_of_birth=student_data['date_of_birth'],
-                current_grade=student_data['current_grade'],
                 guardian_name=student_data['guardian_name'],
                 guardian_relationship=student_data.get('guardian_relationship', 'Parent'),
                 guardian_phone=student_data['guardian_phone'],
@@ -227,6 +424,29 @@ def student_bulk_import_process(request: HttpRequest) -> HttpResponse:
                 student.user = user
 
             student.save()
+
+            # Create class enrollment if class_name is provided
+            if student_data.get('class_name'):
+                from classes.models import Class, StudentEnrollment
+
+                try:
+                    class_obj = Class.objects.get(name=student_data['class_name'], is_active=True)
+                    # Use the class's academic year
+                    academic_year = class_obj.academic_year if class_obj.academic_year else '2024/2025'
+
+                    # Create enrollment
+                    StudentEnrollment.objects.create(
+                        student=student,
+                        class_obj=class_obj,
+                        academic_year=academic_year,
+                        enrollment_date=student.admission_date,
+                        status='enrolled',
+                        is_active=True
+                    )
+                except Class.DoesNotExist:
+                    # Class validation should have caught this, but just in case
+                    pass
+
             success_count += 1
 
         except Exception as e:
@@ -251,6 +471,12 @@ def student_bulk_import_process(request: HttpRequest) -> HttpResponse:
         if errors:
             error_msg += ' Errors: ' + '; '.join(errors[:5])
         messages.error(request, error_msg)
+
+    # For HTMX requests, redirect to student list
+    if request.headers.get('HX-Request'):
+        response = HttpResponse()
+        response['HX-Redirect'] = '/students/'
+        return response
 
     return redirect('students:list')
 
@@ -278,7 +504,7 @@ def _generate_excel_template() -> HttpResponse:
     headers = [
         'first_name', 'last_name', 'other_names', 'date_of_birth',
         'gender', 'email', 'phone_number', 'residential_address',
-        'student_id', 'admission_date', 'current_grade',
+        'student_id', 'admission_date', 'class_name',
         'guardian_name', 'guardian_relationship', 'guardian_phone',
         'guardian_email', 'guardian_address',
         'emergency_contact_name', 'emergency_contact_phone',
@@ -296,12 +522,20 @@ def _generate_excel_template() -> HttpResponse:
         cell.font = header_font
         cell.alignment = Alignment(horizontal="center")
 
+    # Get existing active classes for sample data
+    from classes.models import Class
+    all_active_classes = Class.objects.filter(is_active=True).order_by('grade_level', 'section')
+
+    # Use real class names if available, otherwise use placeholders
+    class_1 = all_active_classes[0].name if all_active_classes else '[REPLACE_WITH_ACTUAL_CLASS_NAME]'
+    class_2 = all_active_classes[1].name if len(all_active_classes) > 1 else '[REPLACE_WITH_ACTUAL_CLASS_NAME]'
+
     # Add sample data
     sample_data = [
         [
             'Kwame', 'Mensah', 'Kofi', '2010-03-15',
             'Male', 'kwame.mensah@example.com', '+233244123456', '123 Main St, Accra',
-            'STU001', '2024-09-01', 'Grade 5',
+            'STU001', '2024-09-01', class_1,
             'Abena Mensah', 'Mother', '+233244987654',
             'abena.mensah@example.com', '123 Main St, Accra',
             'Yaw Mensah', '+233244111222',
@@ -310,7 +544,7 @@ def _generate_excel_template() -> HttpResponse:
         [
             'Akua', 'Owusu', '', '2012-07-20',
             'Female', '', '0244567890', '456 Oak Ave, Kumasi',
-            'STU002', '2024-09-01', 'Grade 3',
+            'STU002', '2024-09-01', class_2,
             'Kwesi Owusu', 'Father', '0244333444',
             'kwesi.owusu@example.com', '456 Oak Ave, Kumasi',
             '', '',
@@ -335,6 +569,31 @@ def _generate_excel_template() -> HttpResponse:
         adjusted_width = min(max_length + 2, 50)
         ws.column_dimensions[column_letter].width = adjusted_width
 
+    # Add a second sheet with available classes
+    ws2 = wb.create_sheet("Available Classes")
+    ws2['A1'] = "Available Class Names (Copy Exact Names)"
+    ws2['A1'].font = Font(bold=True, size=14)
+    ws2['A1'].fill = PatternFill(start_color="34D399", end_color="34D399", fill_type="solid")
+
+    ws2['A2'] = "IMPORTANT: Use exact class names from this list in the class_name column"
+    ws2['A2'].font = Font(italic=True, color="DC2626")
+
+    # List all active classes
+    row_num = 4
+    ws2[f'A{row_num}'] = "Class Name"
+    ws2[f'A{row_num}'].font = Font(bold=True)
+    row_num += 1
+
+    for class_obj in all_active_classes:
+        ws2[f'A{row_num}'] = class_obj.name
+        row_num += 1
+
+    if not all_active_classes:
+        ws2['A5'] = "No active classes found. Please create classes first."
+        ws2['A5'].font = Font(color="DC2626")
+
+    ws2.column_dimensions['A'].width = 40
+
     # Save to BytesIO buffer
     buffer = BytesIO()
     wb.save(buffer)
@@ -357,11 +616,20 @@ def _generate_csv_template() -> HttpResponse:
 
     writer = csv.writer(response)
 
+    # Get all active classes
+    from classes.models import Class
+    all_active_classes = Class.objects.filter(is_active=True).order_by('grade_level', 'section')
+
+    # Write comments with available classes
+    writer.writerow(['# IMPORTANT: Use exact class names from the list below in the class_name column'])
+    writer.writerow(['# Available Classes: ' + ', '.join([c.name for c in all_active_classes]) if all_active_classes else '# No active classes found - please create classes first'])
+    writer.writerow([])  # Empty row for spacing
+
     # Write headers
     headers = [
         'first_name', 'last_name', 'other_names', 'date_of_birth',
         'gender', 'email', 'phone_number', 'residential_address',
-        'student_id', 'admission_date', 'current_grade',
+        'student_id', 'admission_date', 'class_name',
         'guardian_name', 'guardian_relationship', 'guardian_phone',
         'guardian_email', 'guardian_address',
         'emergency_contact_name', 'emergency_contact_phone',
@@ -369,12 +637,20 @@ def _generate_csv_template() -> HttpResponse:
     ]
     writer.writerow(headers)
 
+    # Get existing active classes for sample data
+    from classes.models import Class
+    all_active_classes = Class.objects.filter(is_active=True).order_by('grade_level', 'section')
+
+    # Use real class names if available, otherwise use placeholders
+    class_1 = all_active_classes[0].name if all_active_classes else '[REPLACE_WITH_ACTUAL_CLASS_NAME]'
+    class_2 = all_active_classes[1].name if len(all_active_classes) > 1 else '[REPLACE_WITH_ACTUAL_CLASS_NAME]'
+
     # Write sample data
     sample_data = [
         [
             'Kwame', 'Mensah', 'Kofi', '2010-03-15',
             'Male', 'kwame.mensah@example.com', '+233244123456', '123 Main St, Accra',
-            'STU001', '2024-09-01', 'Grade 5',
+            'STU001', '2024-09-01', class_1,
             'Abena Mensah', 'Mother', '+233244987654',
             'abena.mensah@example.com', '123 Main St, Accra',
             'Yaw Mensah', '+233244111222',
@@ -383,7 +659,7 @@ def _generate_csv_template() -> HttpResponse:
         [
             'Akua', 'Owusu', '', '2012-07-20',
             'Female', '', '0244567890', '456 Oak Ave, Kumasi',
-            'STU002', '2024-09-01', 'Grade 3',
+            'STU002', '2024-09-01', class_2,
             'Kwesi Owusu', 'Father', '0244333444',
             'kwesi.owusu@example.com', '456 Oak Ave, Kumasi',
             '', '',
@@ -434,6 +710,10 @@ def programme_list(request: HttpRequest) -> HttpResponse:
     if request.headers.get('HX-Request') and request.headers.get('HX-Target') == 'programmes-table':
         return render(request, 'students/programmes/partials/programme_rows.html', context)
 
+    # If HTMX request for navigation, return full content partial
+    if request.headers.get('HX-Request'):
+        return render(request, 'students/programmes/partials/programme_list_content.html', context)
+
     # Full page render
     return render(request, 'students/programmes/programme_list.html', context)
 
@@ -453,10 +733,16 @@ def programme_create(request: HttpRequest) -> HttpResponse:
     else:
         form = ProgrammeForm()
 
-    return render(request, 'students/programmes/programme_form.html', {
+    context = {
         'form': form,
         'action': 'Create'
-    })
+    }
+
+    # Return partial template for HTMX requests
+    if request.headers.get('HX-Request'):
+        return render(request, 'students/programmes/partials/programme_form_content.html', context)
+
+    return render(request, 'students/programmes/programme_form.html', context)
 
 
 @school_admin_required
@@ -476,11 +762,17 @@ def programme_edit(request: HttpRequest, pk: int) -> HttpResponse:
     else:
         form = ProgrammeForm(instance=programme)
 
-    return render(request, 'students/programmes/programme_form.html', {
+    context = {
         'form': form,
         'action': 'Edit',
         'programme': programme
-    })
+    }
+
+    # Return partial template for HTMX requests
+    if request.headers.get('HX-Request'):
+        return render(request, 'students/programmes/partials/programme_form_content.html', context)
+
+    return render(request, 'students/programmes/programme_form.html', context)
 
 
 @school_admin_required

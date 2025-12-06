@@ -23,16 +23,21 @@ class SubjectAdmin(admin.ModelAdmin):
 @admin.register(Class)
 class ClassAdmin(admin.ModelAdmin):
     list_display = [
-        'name', 'grade_level', 'section', 'class_teacher',
-        'capacity', 'academic_year', 'is_active'
+        'name', 'grade_level', 'get_school_level', 'section', 'programme',
+        'class_teacher', 'capacity', 'academic_year', 'is_active'
     ]
-    list_filter = ['is_active', 'grade_level', 'academic_year']
+    list_filter = ['is_active', 'grade_level', 'academic_year', 'programme']
     search_fields = ['name', 'grade_level', 'section', 'room_number']
-    readonly_fields = ['created_at', 'updated_at']
-    
+    readonly_fields = ['name', 'created_at', 'updated_at']
+
     fieldsets = (
-        ('Class Information', {
-            'fields': ('name', 'grade_level', 'section', 'academic_year')
+        ('Basic Information', {
+            'fields': ('grade_level', 'section', 'academic_year'),
+            'description': 'Name will be auto-generated from grade level and section'
+        }),
+        ('SHS Programme (For SHS Classes Only)', {
+            'fields': ('programme',),
+            'description': 'Only applicable to Senior High School (SHS 1-3) classes'
         }),
         ('Teacher & Capacity', {
             'fields': ('class_teacher', 'capacity', 'room_number')
@@ -41,10 +46,16 @@ class ClassAdmin(admin.ModelAdmin):
             'fields': ('is_active',)
         }),
         ('System Information', {
-            'fields': ('created_at', 'updated_at'),
+            'fields': ('name', 'created_at', 'updated_at'),
             'classes': ('collapse',)
         }),
     )
+
+    def get_school_level(self, obj):
+        """Display the school level (Early Childhood, Primary, JHS, SHS)"""
+        return obj.get_school_level()
+    get_school_level.short_description = 'School Level'
+    get_school_level.admin_order_field = 'grade_level'
 
 
 @admin.register(ClassSubject)
@@ -73,22 +84,32 @@ class ClassSubjectAdmin(admin.ModelAdmin):
 @admin.register(StudentEnrollment)
 class StudentEnrollmentAdmin(admin.ModelAdmin):
     list_display = [
-        'student', 'class_obj', 'enrollment_date', 
-        'roll_number', 'is_active'
+        'student', 'class_obj', 'academic_year', 'enrollment_date',
+        'status', 'final_result', 'roll_number', 'is_active'
     ]
-    list_filter = ['is_active', 'class_obj', 'enrollment_date']
+    list_filter = [
+        'is_active', 'status', 'final_result', 'academic_year',
+        'class_obj__grade_level', 'enrollment_date'
+    ]
     search_fields = [
-        'student__first_name', 'student__last_name', 
-        'student__student_id', 'class_obj__name'
+        'student__first_name', 'student__last_name',
+        'student__student_id', 'class_obj__name', 'academic_year'
     ]
     readonly_fields = ['created_at', 'updated_at']
-    
+
     fieldsets = (
-        ('Enrollment Details', {
-            'fields': ('student', 'class_obj', 'enrollment_date', 'completion_date')
+        ('Student & Class', {
+            'fields': ('student', 'class_obj', 'academic_year')
         }),
-        ('Class Information', {
-            'fields': ('roll_number', 'is_active')
+        ('Enrollment Period', {
+            'fields': ('enrollment_date', 'completion_date')
+        }),
+        ('Status & Results', {
+            'fields': ('status', 'final_result', 'is_active'),
+            'description': 'Track student progression through Ghana\'s education system'
+        }),
+        ('Class Details', {
+            'fields': ('roll_number',)
         }),
         ('Notes', {
             'fields': ('notes',),

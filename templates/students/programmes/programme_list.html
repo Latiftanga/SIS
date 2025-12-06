@@ -3,14 +3,18 @@
 {% block title %}Programmes{% endblock %}
 
 {% block content %}
-<div class="space-y-6">
-    <div class="flex justify-between items-center">
+<div class="p-6">
+    <div class="flex justify-between items-center mb-6">
         <div>
             <h1 class="text-3xl font-bold text-base-content">Programmes</h1>
             <p class="text-base-content/60 mt-1">Manage academic programmes (for SHS schools)</p>
         </div>
-        <a href="{% url 'students:programme_create' %}" class="btn btn-primary btn-sm">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <a href="{% url 'students:programme_create' %}"
+           hx-get="{% url 'students:programme_create' %}"
+           hx-target="#main-content"
+           hx-push-url="true"
+           class="btn btn-primary btn-sm">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
             </svg>
             Add Programme

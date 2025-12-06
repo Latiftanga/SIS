@@ -7,6 +7,16 @@ class Programme(models.Model):
     """
     Academic programmes/tracks for SHS students (optional for Basic schools).
     Examples: Science, Business, Visual Arts, General Arts, Home Economics, etc.
+
+    Ghana SHS programmes have specific subject requirements:
+    - Core Subjects: Mandatory for all students (English, Math, Integrated Science, Social Studies)
+    - Required Electives: Must be taken by students in this programme
+    - Optional Electives: Students choose based on availability
+
+    Examples:
+    - General Science: Must take Physics, Chemistry, Biology/Elective Science + Math
+    - Business: Must take Business Management, Financial Accounting, Economics/Costing
+    - Visual Arts: Must take Graphic Design, General Knowledge in Art, Picture Making
     """
     name = models.CharField(
         max_length=100,
@@ -20,8 +30,36 @@ class Programme(models.Model):
     )
     description = models.TextField(
         blank=True,
-        help_text='Programme description'
+        help_text='Programme description and career paths'
     )
+
+    # Subject Requirements for SHS Programmes
+    core_subjects = models.ManyToManyField(
+        'classes.Subject',
+        related_name='core_for_programmes',
+        blank=True,
+        help_text='Core subjects required for all students in this programme '
+                  '(e.g., English, Mathematics, Integrated Science, Social Studies)'
+    )
+    required_electives = models.ManyToManyField(
+        'classes.Subject',
+        related_name='required_for_programmes',
+        blank=True,
+        help_text='Required elective subjects for this programme '
+                  '(e.g., Physics, Chemistry, Biology for Science programme)'
+    )
+    optional_electives_count = models.PositiveIntegerField(
+        default=1,
+        help_text='Number of optional elective subjects students must choose'
+    )
+
+    # Programme requirements
+    minimum_aggregate = models.PositiveIntegerField(
+        null=True,
+        blank=True,
+        help_text='Minimum BECE aggregate score required for admission (e.g., 6-30)'
+    )
+
     is_active = models.BooleanField(
         default=True,
         help_text='Whether this programme is currently offered'
@@ -35,9 +73,22 @@ class Programme(models.Model):
         ordering = ['name']
         verbose_name = 'programme'
         verbose_name_plural = 'programmes'
+        indexes = [
+            models.Index(fields=['code']),
+            models.Index(fields=['is_active']),
+        ]
 
     def __str__(self) -> str:
         return f"{self.name} ({self.code})"
+
+    def get_total_required_subjects(self) -> int:
+        """Get total number of required subjects (core + required electives)"""
+        return self.core_subjects.count() + self.required_electives.count()
+
+    def get_all_required_subjects(self):
+        """Get all required subjects (core + required electives)"""
+        from itertools import chain
+        return list(chain(self.core_subjects.all(), self.required_electives.all()))
 
 
 class Student(models.Model):
@@ -50,26 +101,17 @@ class Student(models.Model):
         MALE = 'Male', 'Male'
         FEMALE = 'Female', 'Female'
 
-    class GradeLevel(models.TextChoices):
-        # Early Childhood
-        NURSERY = 'Nursery', 'Nursery'
-        KG1 = 'KG 1', 'KG 1'
-        KG2 = 'KG 2', 'KG 2'
-        # Primary School (Basic 1-6)
-        PRIMARY_1 = 'Primary 1', 'Primary 1'
-        PRIMARY_2 = 'Primary 2', 'Primary 2'
-        PRIMARY_3 = 'Primary 3', 'Primary 3'
-        PRIMARY_4 = 'Primary 4', 'Primary 4'
-        PRIMARY_5 = 'Primary 5', 'Primary 5'
-        PRIMARY_6 = 'Primary 6', 'Primary 6'
-        # Junior High School (Basic 7-9)
-        JHS_1 = 'JHS 1', 'JHS 1'
-        JHS_2 = 'JHS 2', 'JHS 2'
-        JHS_3 = 'JHS 3', 'JHS 3'
-        # Senior High School
-        SHS_1 = 'SHS 1', 'SHS 1'
-        SHS_2 = 'SHS 2', 'SHS 2'
-        SHS_3 = 'SHS 3', 'SHS 3'
+    class GuardianRelationship(models.TextChoices):
+        PARENT = 'Parent', 'Parent'
+        FATHER = 'Father', 'Father'
+        MOTHER = 'Mother', 'Mother'
+        GUARDIAN = 'Guardian', 'Guardian'
+        GRANDMOTHER = 'Grandmother', 'Grandmother'
+        GRANDFATHER = 'Grandfather', 'Grandfather'
+        AUNT = 'Aunt', 'Aunt'
+        UNCLE = 'Uncle', 'Uncle'
+        SIBLING = 'Sibling', 'Sibling'
+        OTHER = 'Other', 'Other'
 
     # Optional link to User account
     user = models.OneToOneField(
@@ -118,11 +160,6 @@ class Student(models.Model):
     admission_date = models.DateField(
         help_text='Date student was admitted to the school'
     )
-    current_grade = models.CharField(
-        max_length=50,
-        choices=GradeLevel.choices,
-        help_text='Current grade/class'
-    )
     
     # Guardian Information
     guardian_name = models.CharField(
@@ -131,8 +168,9 @@ class Student(models.Model):
     )
     guardian_relationship = models.CharField(
         max_length=50,
-        default='Parent',
-        help_text='Relationship to student (Parent, Guardian, etc.)'
+        choices=GuardianRelationship.choices,
+        default=GuardianRelationship.PARENT,
+        help_text='Relationship to student'
     )
     guardian_phone_regex = RegexValidator(
         regex=r'^(\+233|0)[2-5][0-9]{8}$',
@@ -171,7 +209,40 @@ class Student(models.Model):
         blank=True,
         help_text='Any medical conditions, allergies, or special needs'
     )
-    
+
+    # Boarding/Residence Status (for SHS students primarily)
+    class ResidenceStatus(models.TextChoices):
+        DAY = 'day', 'Day Student'
+        BOARDING = 'boarding', 'Boarding Student'
+        SEMI_BOARDING = 'semi_boarding', 'Semi-Boarding'
+
+    residence_status = models.CharField(
+        max_length=20,
+        choices=ResidenceStatus.choices,
+        blank=True,
+        help_text='Residential status (applicable for SHS students)'
+    )
+    dormitory = models.CharField(
+        max_length=100,
+        blank=True,
+        help_text='Dormitory or hostel name (for boarding students)'
+    )
+    bed_number = models.CharField(
+        max_length=20,
+        blank=True,
+        help_text='Bed/cubicle number (for boarding students)'
+    )
+
+    # House Assignment (for house system)
+    house = models.ForeignKey(
+        'classes.House',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='students',
+        help_text='House assignment for inter-house competitions'
+    )
+
     # Photo
     photo = models.ImageField(
         upload_to='students/photos/',
@@ -191,13 +262,13 @@ class Student(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        ordering = ['current_grade', 'last_name', 'first_name']
+        ordering = ['last_name', 'first_name']
         verbose_name = 'student'
         verbose_name_plural = 'students'
         indexes = [
             models.Index(fields=['student_id']),
-            models.Index(fields=['current_grade', 'is_active']),
             models.Index(fields=['last_name', 'first_name']),
+            models.Index(fields=['is_active']),
         ]
 
     def __str__(self) -> str:
@@ -216,3 +287,25 @@ class Student(models.Model):
         return today.year - self.date_of_birth.year - (
             (today.month, today.day) < (self.date_of_birth.month, self.date_of_birth.day)
         )
+
+    def is_boarding_student(self) -> bool:
+        """Check if student is a boarding student"""
+        return self.residence_status == self.ResidenceStatus.BOARDING
+
+    def is_day_student(self) -> bool:
+        """Check if student is a day student"""
+        return self.residence_status == self.ResidenceStatus.DAY
+
+    def get_current_enrollment(self):
+        """Get the student's current active enrollment"""
+        return self.enrollments.filter(is_active=True).order_by('-created_at').first()
+
+    def get_current_class(self):
+        """Get the student's current class"""
+        enrollment = self.get_current_enrollment()
+        return enrollment.class_obj if enrollment else None
+
+    def get_current_grade(self) -> str:
+        """Get the student's current grade level from their class enrollment"""
+        current_class = self.get_current_class()
+        return current_class.grade_level if current_class else 'Not Enrolled'

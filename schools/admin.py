@@ -20,7 +20,7 @@ class DomainInline(admin.TabularInline):
 
 
 class SchoolAdmin(admin.ModelAdmin):
-    list_display = ['name', 'schema_name', 'primary_domain', 'created_on']
+    list_display = ['name', 'short_name', 'schema_name', 'primary_domain', 'created_on']
     list_filter = ['created_on']
     search_fields = ['name', 'schema_name']
     
@@ -44,7 +44,7 @@ class SchoolAdmin(admin.ModelAdmin):
         if obj is None:
             return (
                 ('School Information', {
-                    'fields': ('name', 'schema_name')
+                    'fields': ('name', 'short_name', 'schema_name')
                 }),
                 ('Domain', {
                     'fields': ('domain',)
@@ -56,7 +56,7 @@ class SchoolAdmin(admin.ModelAdmin):
         else:
             return (
                 ('School Information', {
-                    'fields': ('name', 'schema_name', 'created_on')
+                    'fields': ('name', 'short_name', 'schema_name', 'created_on')
                 }),
                 ('Access', {
                     'fields': ('access_info',)

@@ -1,80 +1,97 @@
-{% extends 'dashboard/layouts/dashboard_base.html' %}
+{% extends "dashboard/layouts/dashboard_base.html" %}
+{% load static %}
 
-{% block title %}{{ class.name }}{% endblock %}
+{% block title %}{{ class.name }} - Class Details{% endblock %}
 
 {% block content %}
-<div class="max-w-7xl mx-auto space-y-6">
+<div class="p-6">
+    <!-- Breadcrumb -->
+    <div class="text-sm breadcrumbs mb-4">
+        <ul>
+            <li>
+                <a href="{% url 'classes:class_list' %}"
+                   hx-get="{% url 'classes:class_list' %}"
+                   hx-target="#main-content"
+                   hx-push-url="true">Classes</a>
+            </li>
+            <li>{{ class.name }}</li>
+        </ul>
+    </div>
+
     <!-- Header -->
-    <div class="flex justify-between items-center">
+    <div class="flex justify-between items-start mb-6">
         <div>
             <h1 class="text-3xl font-bold">{{ class.name }}</h1>
-            <p class="text-base-content/60 mt-1">
+            <p class="text-gray-600 mt-1">
                 {{ class.grade_level }}{% if class.section %} - {{ class.section }}{% endif %} |
                 Academic Year: {{ class.academic_year }}
             </p>
         </div>
         <div class="flex gap-2">
-            <a href="{% url 'attendance:session_create' class.id %}" class="btn btn-primary btn-sm">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+            <a href="{% url 'classes:class_edit' class.pk %}"
+               hx-get="{% url 'classes:class_edit' class.pk %}"
+               hx-target="#main-content"
+               hx-push-url="true"
+               class="btn btn-primary btn-sm">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                 </svg>
-                Mark Attendance
+                Edit Class
             </a>
-            <a href="{% url 'attendance:class_report' class.id %}" class="btn btn-outline btn-sm">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
-                Attendance Report
-            </a>
-            <a href="{% url 'classes:class_promote' class.id %}" class="btn btn-accent btn-sm">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18" />
-                </svg>
-                Promote Class
-            </a>
-            <a href="{% url 'classes:class_edit' class.id %}" class="btn btn-outline btn-sm">Edit Class</a>
-            <a href="{% url 'classes:class_list' %}" class="btn btn-ghost btn-sm">Back</a>
         </div>
     </div>
 
-    <!-- Class Info Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div class="stat bg-base-100 shadow-xl rounded-box">
-            <div class="stat-title">Students</div>
-            <div class="stat-value text-primary">{{ student_count }}</div>
-            <div class="stat-desc">{{ available_capacity }} slots available</div>
+    <!-- Statistics Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+        <div class="card bg-base-100 shadow-xl">
+            <div class="card-body">
+                <h3 class="card-title text-sm">Students</h3>
+                <p class="text-3xl font-bold text-primary">{{ student_count }}</p>
+                <p class="text-sm text-gray-600">{{ available_capacity }} slots available</p>
+            </div>
         </div>
-        <div class="stat bg-base-100 shadow-xl rounded-box">
-            <div class="stat-title">Capacity</div>
-            <div class="stat-value">{{ class.capacity }}</div>
+        <div class="card bg-base-100 shadow-xl">
+            <div class="card-body">
+                <h3 class="card-title text-sm">Capacity</h3>
+                <p class="text-3xl font-bold">{{ class.capacity }}</p>
+            </div>
         </div>
-        <div class="stat bg-base-100 shadow-xl rounded-box">
-            <div class="stat-title">Class Teacher</div>
-            <div class="stat-value text-sm">{{ class.class_teacher.get_full_name|default:"Not assigned" }}</div>
+        <div class="card bg-base-100 shadow-xl">
+            <div class="card-body">
+                <h3 class="card-title text-sm">Class Teacher</h3>
+                <p class="text-lg font-bold">{{ class.class_teacher.get_full_name|default:"Not assigned" }}</p>
+            </div>
         </div>
-        <div class="stat bg-base-100 shadow-xl rounded-box">
-            <div class="stat-title">Room</div>
-            <div class="stat-value text-sm">{{ class.room_number|default:"Not assigned" }}</div>
+        <div class="card bg-base-100 shadow-xl">
+            <div class="card-body">
+                <h3 class="card-title text-sm">Room</h3>
+                <p class="text-lg font-bold">{{ class.room_number|default:"Not assigned" }}</p>
+            </div>
         </div>
     </div>
 
     <!-- Tabs -->
-    <div role="tablist" class="tabs tabs-boxed bg-base-100 shadow-xl">
-        <input type="radio" name="class_tabs" role="tab" class="tab" aria-label="Students" checked />
+    <div role="tablist" class="tabs tabs-boxed bg-base-100 shadow-xl mb-6">
+        <input type="radio" name="class_tabs" role="tab" class="tab" aria-label="Students"
+               {% if request.GET.tab != 'subjects' %}checked{% endif %} />
         <div role="tabpanel" class="tab-content p-6">
             <div class="flex justify-between items-center mb-4">
                 <h2 class="text-xl font-bold">Enrolled Students ({{ student_count }})</h2>
-                <a href="{% url 'classes:enrollment_bulk' class.id %}" class="btn btn-primary btn-sm">
+                <button class="btn btn-primary btn-sm"
+                        hx-get="{% url 'classes:enrollment_bulk' class.id %}"
+                        hx-target="#enrollment-modal-content"
+                        hx-swap="innerHTML"
+                        onclick="enrollment_modal.showModal()">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
                     </svg>
                     Enroll Students
-                </a>
+                </button>
             </div>
-            
+
             {% if enrollments %}
             <div class="overflow-x-auto">
-                <table class="table table-zebra">
+                <table class="table table-zebra w-full">
                     <thead>
                         <tr>
                             <th>Roll No.</th>
@@ -90,7 +107,11 @@
                         <tr>
                             <td>{{ enrollment.roll_number|default:"—" }}</td>
                             <td>
-                                <a href="{% url 'students:detail' enrollment.student.id %}" class="link">
+                                <a href="{% url 'students:detail' enrollment.student.id %}"
+                                   hx-get="{% url 'students:detail' enrollment.student.id %}"
+                                   hx-target="#main-content"
+                                   hx-push-url="true"
+                                   class="link link-hover">
                                     {{ enrollment.student.get_full_name }}
                                 </a>
                             </td>
@@ -106,6 +127,9 @@
                             <td>
                                 <div class="flex gap-2">
                                     <a href="{% url 'classes:student_transcript' enrollment.student.id %}"
+                                       hx-get="{% url 'classes:student_transcript' enrollment.student.id %}"
+                                       hx-target="#main-content"
+                                       hx-push-url="true"
                                        class="btn btn-ghost btn-xs">
                                         Transcript
                                     </a>
@@ -122,22 +146,30 @@
                 </table>
             </div>
             {% else %}
-            <div class="text-center py-12">
-                <p class="text-base-content/60">No students enrolled yet</p>
+            <div class="alert alert-info">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-current flex-shrink-0 w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                <span>No students enrolled yet.</span>
             </div>
             {% endif %}
         </div>
 
-        <input type="radio" name="class_tabs" role="tab" class="tab" aria-label="Subjects" />
+        <input type="radio" name="class_tabs" role="tab" class="tab" aria-label="Subjects"
+               {% if request.GET.tab == 'subjects' %}checked{% endif %} />
         <div role="tabpanel" class="tab-content p-6">
             <div class="flex justify-between items-center mb-4">
                 <h2 class="text-xl font-bold">Assigned Subjects</h2>
-                <a href="{% url 'classes:class_subject_create' class.id %}" class="btn btn-primary btn-sm">Assign Subject</a>
+                <button class="btn btn-primary btn-sm"
+                        hx-get="{% url 'classes:class_subject_create' class.id %}"
+                        hx-target="#subject-modal-content"
+                        hx-swap="innerHTML"
+                        onclick="subject_modal.showModal()">
+                    Assign Subject
+                </button>
             </div>
-            
+
             {% if subjects %}
-            <div class="overflow-x-auto">
-                <table class="table table-zebra">
+            <div class="overflow-x-auto" id="subjects-table">
+                <table class="table table-zebra w-full">
                     <thead>
                         <tr>
                             <th>Subject</th>
@@ -157,7 +189,9 @@
                             <td>
                                 <button class="btn btn-ghost btn-xs text-error"
                                         hx-delete="{% url 'classes:class_subject_delete' cs.id %}"
-                                        hx-confirm="Remove this subject from the class?">
+                                        hx-confirm="Remove this subject from the class?"
+                                        hx-target="closest tr"
+                                        hx-swap="outerHTML swap:1s">
                                     Remove
                                 </button>
                             </td>
@@ -167,11 +201,50 @@
                 </table>
             </div>
             {% else %}
-            <div class="text-center py-12">
-                <p class="text-base-content/60">No subjects assigned yet</p>
+            <div class="alert alert-info" id="subjects-table">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-current flex-shrink-0 w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                <span>No subjects assigned yet.</span>
             </div>
             {% endif %}
         </div>
     </div>
 </div>
+
+<!-- Subject Assignment Modal -->
+<dialog id="subject_modal" class="modal">
+    <div class="modal-box max-w-2xl">
+        <div id="subject-modal-content">
+            <!-- Form content will be loaded here via HTMX -->
+        </div>
+    </div>
+    <form method="dialog" class="modal-backdrop">
+        <button>close</button>
+    </form>
+</dialog>
+
+<!-- Student Enrollment Modal -->
+<dialog id="enrollment_modal" class="modal">
+    <div class="modal-box max-w-6xl">
+        <div id="enrollment-modal-content">
+            <!-- Form content will be loaded here via HTMX -->
+        </div>
+    </div>
+    <form method="dialog" class="modal-backdrop">
+        <button>close</button>
+    </form>
+</dialog>
+
+<script>
+    // Listen for HTMX trigger to close modals
+    document.body.addEventListener('closeModal', function() {
+        document.getElementById('subject_modal').close();
+        document.getElementById('enrollment_modal').close();
+    });
+
+    // Listen for HTMX trigger to reload page
+    document.body.addEventListener('reload', function() {
+        window.location.reload();
+    });
+</script>
+
 {% endblock %}

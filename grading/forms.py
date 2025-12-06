@@ -16,16 +16,11 @@ class GradingPeriodForm(forms.ModelForm):
     class Meta:
         model = GradingPeriod
         fields = [
-            'academic_year', 'term', 'start_date', 'end_date',
+            'term', 'start_date', 'end_date',
             'grade_entry_deadline', 'report_generation_date',
             'is_current', 'is_active'
         ]
         widgets = {
-            'academic_year': forms.TextInput(attrs={
-                'class': 'input input-bordered input-sm w-full',
-                'placeholder': 'e.g., 2024/2025',
-                'required': True
-            }),
             'term': forms.Select(attrs={
                 'class': 'select select-bordered select-sm w-full',
                 'required': True
@@ -56,6 +51,22 @@ class GradingPeriodForm(forms.ModelForm):
                 'class': 'checkbox checkbox-primary'
             }),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        from core.models import Term, SchoolSettings
+
+        # Set up queryset for term field
+        self.fields['term'].queryset = Term.objects.select_related('academic_year').order_by('-academic_year__start_date', 'number')
+
+        # Auto-select current term from school settings if creating new grading period
+        if not self.instance.pk:  # Only for new instances
+            settings = SchoolSettings.get_settings()
+            if settings.current_term:
+                self.fields['term'].initial = settings.current_term
+                # Also pre-fill dates from the term
+                self.fields['start_date'].initial = settings.current_term.start_date
+                self.fields['end_date'].initial = settings.current_term.end_date
 
     def clean(self):
         """Validate date relationships"""

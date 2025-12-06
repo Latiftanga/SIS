@@ -81,6 +81,90 @@
                     </div>
                 </div>
 
+                <!-- Academic Session Card -->
+                <div class="card bg-base-100 shadow-xl">
+                    <div class="card-body">
+                        <div class="flex items-center justify-between">
+                            <h2 class="card-title text-xl flex items-center gap-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                </svg>
+                                Academic Session
+                            </h2>
+                            <div class="flex gap-2">
+                                <button type="button" class="btn btn-ghost btn-sm" onclick="academic_years_section.showModal()">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                    </svg>
+                                    Manage Years
+                                </button>
+                                <button type="button" class="btn btn-ghost btn-sm" onclick="terms_section.showModal()">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                    Manage Terms
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="divider"></div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <!-- Academic Year -->
+                            <div class="form-control w-full">
+                                <label class="label">
+                                    <span class="label-text text-sm font-semibold flex items-center gap-2">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                        </svg>
+                                        Academic Year
+                                    </span>
+                                </label>
+                                <select name="current_academic_year" class="select select-bordered select-sm w-full">
+                                    <option value="">-- Select Academic Year --</option>
+                                    {% for year in academic_years %}
+                                    <option value="{{ year.id }}" {% if settings.current_academic_year and settings.current_academic_year.id == year.id %}selected{% endif %}>
+                                        {{ year.name }} ({{ year.start_date|date:"M Y" }} - {{ year.end_date|date:"M Y" }})
+                                        {% if year.is_active %} ⭐{% endif %}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                                <label class="label">
+                                    <span class="label-text-alt text-xs">
+                                        Select from available academic years
+                                    </span>
+                                </label>
+                            </div>
+
+                            <!-- Current Term -->
+                            <div class="form-control w-full">
+                                <label class="label">
+                                    <span class="label-text text-sm font-semibold flex items-center gap-2">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                        Current Term
+                                    </span>
+                                </label>
+                                <select name="current_term" class="select select-bordered select-sm w-full">
+                                    <option value="">-- Select Term --</option>
+                                    {% for term in terms %}
+                                        <option value="{{ term.id }}" {% if settings.current_term.id == term.id %}selected{% endif %}>
+                                            {{ term.academic_year.name }} - {{ term.name }}
+                                        </option>
+                                    {% empty %}
+                                        <option value="" disabled>No terms available. Create an academic year first.</option>
+                                    {% endfor %}
+                                </select>
+                                <label class="label">
+                                    <span class="label-text-alt text-xs">Select the current academic term</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Theme Settings Card -->
                 <div class="card bg-base-100 shadow-xl">
                     <div class="card-body">
@@ -182,12 +266,6 @@
                             </label>
                         </div>
 
-                        <div class="alert alert-warning mt-4">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                            <span class="text-xs">Logo appears in the sidebar</span>
-                        </div>
                     </div>
                 </div>
             </div>
@@ -208,4 +286,389 @@
         </div>
     </form>
 </div>
+
+<!-- Academic Years Management Modal -->
+<dialog id="academic_years_section" class="modal">
+    <div class="modal-box max-w-4xl max-h-[90vh] overflow-y-auto">
+        <div class="flex items-center justify-between mb-4">
+            <div>
+                <h3 class="font-bold text-xl">Manage Academic Years</h3>
+                <p class="text-base-content/60 text-sm">Create and manage your school's academic years</p>
+            </div>
+            <button class="btn btn-primary btn-sm" onclick="academic_year_form_modal.showModal()">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                </svg>
+                Add Year
+            </button>
+        </div>
+
+        <div class="divider"></div>
+
+        <!-- Academic Years List -->
+        <div class="space-y-3">
+            {% for year in academic_years %}
+            <div class="card bg-base-200 {% if year.is_active %}ring-2 ring-primary{% endif %}">
+                <div class="card-body p-4">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h4 class="font-bold text-lg flex items-center gap-2">
+                                {{ year.name }}
+                                {% if year.is_active %}
+                                <span class="badge badge-primary badge-sm">Active</span>
+                                {% endif %}
+                            </h4>
+                            <p class="text-sm text-base-content/60 mt-1">
+                                {{ year.start_date|date:"M j, Y" }} - {{ year.end_date|date:"M j, Y" }}
+                            </p>
+                        </div>
+                        <div class="flex gap-1">
+                            <button class="btn btn-ghost btn-xs"
+                                    onclick="editYear({{ year.id }}, '{{ year.name }}', '{{ year.start_date|date:'Y-m-d' }}', '{{ year.end_date|date:'Y-m-d' }}', {{ year.is_active|yesno:'true,false' }})">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                </svg>
+                            </button>
+                            <button class="btn btn-ghost btn-xs text-error"
+                                    onclick="deleteYear({{ year.id }}, '{{ year.name }}')">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="text-center py-8">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mx-auto text-base-content/20 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                <p class="text-base-content/60">No academic years yet</p>
+                <button class="btn btn-primary btn-sm mt-3" onclick="academic_year_form_modal.showModal()">
+                    Create First Academic Year
+                </button>
+            </div>
+            {% endfor %}
+        </div>
+
+        <div class="modal-action">
+            <button type="button" class="btn btn-ghost" onclick="academic_years_section.close()">Close</button>
+        </div>
+    </div>
+    <form method="dialog" class="modal-backdrop">
+        <button>close</button>
+    </form>
+</dialog>
+
+<!-- Academic Year Create/Edit Form Modal -->
+<dialog id="academic_year_form_modal" class="modal">
+    <div class="modal-box">
+        <h3 class="font-bold text-lg mb-2" id="year_modal_title">Add Academic Year</h3>
+        <form method="post" id="academic_year_form" action="{% url 'core:academic_year_create' %}" class="space-y-4">
+            {% csrf_token %}
+            <input type="hidden" name="next" value="{% url 'core:settings' %}" />
+
+            <div class="form-control">
+                <label class="label">
+                    <span class="label-text font-semibold">Academic Year Name <span class="text-error">*</span></span>
+                </label>
+                <input type="text" name="name" id="year_name" placeholder="e.g., 2024/2025" maxlength="20" required class="input input-bordered input-sm" />
+                <label class="label">
+                    <span class="label-text-alt text-xs">Format: YYYY/YYYY</span>
+                </label>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text font-semibold">Start Date <span class="text-error">*</span></span>
+                    </label>
+                    <input type="date" name="start_date" id="year_start_date" required class="input input-bordered input-sm" />
+                </div>
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text font-semibold">End Date <span class="text-error">*</span></span>
+                    </label>
+                    <input type="date" name="end_date" id="year_end_date" required class="input input-bordered input-sm" />
+                </div>
+            </div>
+
+            <div class="form-control">
+                <label class="label cursor-pointer justify-start gap-2">
+                    <input type="checkbox" name="is_active" id="year_is_active" class="checkbox checkbox-primary checkbox-sm" />
+                    <span class="label-text">Set as active academic year</span>
+                </label>
+            </div>
+
+            <div class="modal-action">
+                <button type="button" class="btn btn-ghost btn-sm" onclick="academic_year_form_modal.close()">Cancel</button>
+                <button type="submit" class="btn btn-primary btn-sm">Save</button>
+            </div>
+        </form>
+    </div>
+    <form method="dialog" class="modal-backdrop">
+        <button>close</button>
+    </form>
+</dialog>
+
+<!-- Delete Confirmation Modal -->
+<dialog id="delete_year_modal" class="modal">
+    <div class="modal-box">
+        <h3 class="font-bold text-lg mb-2">Delete Academic Year?</h3>
+        <p class="text-base-content/60 text-sm mb-4">
+            Are you sure you want to delete <strong id="delete_year_name"></strong>? This action cannot be undone.
+        </p>
+        <form method="post" id="delete_year_form">
+            {% csrf_token %}
+            <input type="hidden" name="next" value="{% url 'core:settings' %}" />
+            <div class="modal-action">
+                <button type="button" class="btn btn-ghost btn-sm" onclick="delete_year_modal.close()">Cancel</button>
+                <button type="submit" class="btn btn-error btn-sm">Delete</button>
+            </div>
+        </form>
+    </div>
+    <form method="dialog" class="modal-backdrop">
+        <button>close</button>
+    </form>
+</dialog>
+
+<!-- Terms Management Modal -->
+<dialog id="terms_section" class="modal">
+    <div class="modal-box max-w-5xl max-h-[90vh] overflow-y-auto">
+        <div class="flex items-center justify-between mb-4">
+            <div>
+                <h3 class="font-bold text-xl">Manage Terms/Semesters</h3>
+                <p class="text-base-content/60 text-sm">Create and manage academic terms for each year</p>
+            </div>
+            <button class="btn btn-primary btn-sm" onclick="term_form_modal.showModal()">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                </svg>
+                Add Term
+            </button>
+        </div>
+
+        <div class="divider"></div>
+
+        <!-- Terms List grouped by Academic Year -->
+        <div class="space-y-4">
+            {% for year in academic_years %}
+            <div class="collapse collapse-arrow bg-base-200">
+                <input type="checkbox" {% if year.is_active %}checked{% endif %} />
+                <div class="collapse-title text-lg font-medium flex items-center gap-2">
+                    {{ year.name }}
+                    {% if year.is_active %}
+                    <span class="badge badge-primary badge-sm">Active Year</span>
+                    {% endif %}
+                    <span class="badge badge-ghost badge-sm">{{ year.terms.count }} term{{ year.terms.count|pluralize }}</span>
+                </div>
+                <div class="collapse-content">
+                    <div class="space-y-2 mt-2">
+                        {% for term in year.terms.all %}
+                        <div class="card bg-base-100 {% if term.is_current %}ring-2 ring-primary{% endif %}">
+                            <div class="card-body p-3">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex-1">
+                                        <h4 class="font-semibold flex items-center gap-2">
+                                            {{ term.name }}
+                                            {% if term.is_current %}
+                                            <span class="badge badge-primary badge-xs">Current</span>
+                                            {% endif %}
+                                        </h4>
+                                        <p class="text-xs text-base-content/60 mt-1">
+                                            {{ term.start_date|date:"M j, Y" }} - {{ term.end_date|date:"M j, Y" }}
+                                        </p>
+                                    </div>
+                                    <div class="flex gap-1">
+                                        <button class="btn btn-ghost btn-xs"
+                                                onclick="editTerm({{ term.id }}, {{ year.id }}, '{{ term.name }}', {{ term.number }}, '{{ term.start_date|date:'Y-m-d' }}', '{{ term.end_date|date:'Y-m-d' }}', {{ term.is_current|yesno:'true,false' }})">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                            </svg>
+                                        </button>
+                                        <button class="btn btn-ghost btn-xs text-error"
+                                                onclick="deleteTerm({{ term.id }}, '{{ term.name }}')">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                            </svg>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="text-center py-4 text-sm text-base-content/60">
+                            No terms for this academic year
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="text-center py-8">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mx-auto text-base-content/20 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <p class="text-base-content/60">No academic years yet</p>
+                <p class="text-sm text-base-content/40 mt-1">Create an academic year first</p>
+            </div>
+            {% endfor %}
+        </div>
+
+        <div class="modal-action">
+            <button type="button" class="btn btn-ghost" onclick="terms_section.close()">Close</button>
+        </div>
+    </div>
+    <form method="dialog" class="modal-backdrop">
+        <button>close</button>
+    </form>
+</dialog>
+
+<!-- Term Create/Edit Form Modal -->
+<dialog id="term_form_modal" class="modal">
+    <div class="modal-box">
+        <h3 class="font-bold text-lg mb-2" id="term_modal_title">Add Term</h3>
+        <form method="post" id="term_form" action="{% url 'core:term_create' %}" class="space-y-4">
+            {% csrf_token %}
+            <input type="hidden" name="next" value="{% url 'core:settings' %}" />
+
+            <div class="form-control">
+                <label class="label">
+                    <span class="label-text font-semibold">Academic Year <span class="text-error">*</span></span>
+                </label>
+                <select name="academic_year" id="term_academic_year" required class="select select-bordered select-sm">
+                    <option value="">-- Select Academic Year --</option>
+                    {% for year in academic_years %}
+                    <option value="{{ year.id }}">{{ year.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text font-semibold">Term Name <span class="text-error">*</span></span>
+                    </label>
+                    <input type="text" name="name" id="term_name" placeholder="e.g., Term 1" maxlength="20" required class="input input-bordered input-sm" />
+                </div>
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text font-semibold">Number <span class="text-error">*</span></span>
+                    </label>
+                    <input type="number" name="number" id="term_number" placeholder="1, 2, or 3" min="1" max="3" required class="input input-bordered input-sm" />
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text font-semibold">Start Date <span class="text-error">*</span></span>
+                    </label>
+                    <input type="date" name="start_date" id="term_start_date" required class="input input-bordered input-sm" />
+                </div>
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text font-semibold">End Date <span class="text-error">*</span></span>
+                    </label>
+                    <input type="date" name="end_date" id="term_end_date" required class="input input-bordered input-sm" />
+                </div>
+            </div>
+
+            <div class="form-control">
+                <label class="label cursor-pointer justify-start gap-2">
+                    <input type="checkbox" name="is_current" id="term_is_current" class="checkbox checkbox-primary checkbox-sm" />
+                    <span class="label-text">Set as current term</span>
+                </label>
+            </div>
+
+            <div class="modal-action">
+                <button type="button" class="btn btn-ghost btn-sm" onclick="term_form_modal.close()">Cancel</button>
+                <button type="submit" class="btn btn-primary btn-sm">Save</button>
+            </div>
+        </form>
+    </div>
+    <form method="dialog" class="modal-backdrop">
+        <button>close</button>
+    </form>
+</dialog>
+
+<!-- Delete Term Confirmation Modal -->
+<dialog id="delete_term_modal" class="modal">
+    <div class="modal-box">
+        <h3 class="font-bold text-lg mb-2">Delete Term?</h3>
+        <p class="text-base-content/60 text-sm mb-4">
+            Are you sure you want to delete <strong id="delete_term_name"></strong>? This action cannot be undone.
+        </p>
+        <form method="post" id="delete_term_form">
+            {% csrf_token %}
+            <input type="hidden" name="next" value="{% url 'core:settings' %}" />
+            <div class="modal-action">
+                <button type="button" class="btn btn-ghost btn-sm" onclick="delete_term_modal.close()">Cancel</button>
+                <button type="submit" class="btn btn-error btn-sm">Delete</button>
+            </div>
+        </form>
+    </div>
+    <form method="dialog" class="modal-backdrop">
+        <button>close</button>
+    </form>
+</dialog>
+
+<script>
+function editYear(id, name, startDate, endDate, isActive) {
+    document.getElementById('year_modal_title').textContent = 'Edit Academic Year';
+    document.getElementById('academic_year_form').action = `/academic-years/${id}/edit/`;
+    document.getElementById('year_name').value = name;
+    document.getElementById('year_start_date').value = startDate;
+    document.getElementById('year_end_date').value = endDate;
+    document.getElementById('year_is_active').checked = isActive;
+    academic_year_form_modal.showModal();
+}
+
+function deleteYear(id, name) {
+    document.getElementById('delete_year_name').textContent = name;
+    document.getElementById('delete_year_form').action = `/academic-years/${id}/delete/`;
+    delete_year_modal.showModal();
+}
+
+// Reset form when creating new
+document.querySelector('[onclick="academic_year_form_modal.showModal()"]').addEventListener('click', function(e) {
+    if (e.target.closest('#academic_years_section')) {
+        document.getElementById('year_modal_title').textContent = 'Add Academic Year';
+        document.getElementById('academic_year_form').action = '{% url "core:academic_year_create" %}';
+        document.getElementById('academic_year_form').reset();
+    }
+});
+
+// Term Management Functions
+function editTerm(id, academicYearId, name, number, startDate, endDate, isCurrent) {
+    document.getElementById('term_modal_title').textContent = 'Edit Term';
+    document.getElementById('term_form').action = `/terms/${id}/edit/`;
+    document.getElementById('term_academic_year').value = academicYearId;
+    document.getElementById('term_name').value = name;
+    document.getElementById('term_number').value = number;
+    document.getElementById('term_start_date').value = startDate;
+    document.getElementById('term_end_date').value = endDate;
+    document.getElementById('term_is_current').checked = isCurrent;
+    term_form_modal.showModal();
+}
+
+function deleteTerm(id, name) {
+    document.getElementById('delete_term_name').textContent = name;
+    document.getElementById('delete_term_form').action = `/terms/${id}/delete/`;
+    delete_term_modal.showModal();
+}
+
+// Reset term form when creating new
+document.querySelectorAll('[onclick="term_form_modal.showModal()"]').forEach(btn => {
+    btn.addEventListener('click', function(e) {
+        if (!e.target.closest('.btn-ghost.btn-xs')) { // Only for "Add Term" button
+            document.getElementById('term_modal_title').textContent = 'Add Term';
+            document.getElementById('term_form').action = '{% url "core:term_create" %}';
+            document.getElementById('term_form').reset();
+        }
+    });
+});
+</script>
+
 {% endblock %}

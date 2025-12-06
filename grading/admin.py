@@ -10,17 +10,17 @@ from .models import (
 @admin.register(GradingPeriod)
 class GradingPeriodAdmin(admin.ModelAdmin):
     list_display = [
-        'academic_year', 'term', 'start_date', 'end_date',
+        'term', 'start_date', 'end_date',
         'grade_entry_deadline', 'is_current_display', 'is_active'
     ]
-    list_filter = ['academic_year', 'term', 'is_current', 'is_active']
-    search_fields = ['academic_year']
+    list_filter = ['term__academic_year', 'is_current', 'is_active']
+    search_fields = ['term__name', 'term__academic_year__name']
     date_hierarchy = 'start_date'
     readonly_fields = ['created_at', 'updated_at']
 
     fieldsets = (
         ('Period Information', {
-            'fields': ('academic_year', 'term', 'is_current', 'is_active')
+            'fields': ('term', 'is_current', 'is_active')
         }),
         ('Dates', {
             'fields': ('start_date', 'end_date', 'grade_entry_deadline', 'report_generation_date')

@@ -1,3 +1,4 @@
 from django.contrib import admin
 
-# Register your models here.
+# School settings are managed through the tenant settings page, not Django admin
+# Only platform superuser has access to Django admin

@@ -8,14 +8,19 @@ class StudentAdmin(admin.ModelAdmin):
         'student_id',
         'first_name',
         'last_name',
-        'current_grade',
+        'display_current_grade',
         'admission_date',
         'is_active'
     ]
-    list_filter = ['is_active', 'current_grade', 'gender', 'admission_date']
+    list_filter = ['is_active', 'gender', 'admission_date']
     search_fields = ['first_name', 'last_name', 'student_id', 'guardian_name', 'email']
     readonly_fields = ['created_at', 'updated_at']
-    
+
+    def display_current_grade(self, obj):
+        """Display current grade from enrollment"""
+        return obj.get_current_grade()
+    display_current_grade.short_description = 'Current Grade'
+
     fieldsets = (
         ('User Account', {
             'fields': ('user',)
@@ -27,7 +32,7 @@ class StudentAdmin(admin.ModelAdmin):
             'fields': ('email', 'phone_number', 'residential_address')
         }),
         ('Student Information', {
-            'fields': ('student_id', 'admission_date', 'current_grade', 'is_active')
+            'fields': ('student_id', 'admission_date', 'is_active')
         }),
         ('Guardian Information', {
             'fields': (

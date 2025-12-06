@@ -1,21 +1,85 @@
-<!-- Messages Alert Component -->
+<!-- Toast Messages Container -->
 {% if messages %}
-    <div class="space-y-2 mb-4">
-        {% for message in messages %}
-            <div role="alert" class="alert {% if message.tags == 'error' %}alert-error{% elif message.tags == 'success' %}alert-success{% elif message.tags == 'warning' %}alert-warning{% else %}alert-info{% endif %} shadow-lg">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-current shrink-0 w-6 h-6">
-                    {% if message.tags == 'error' %}
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    {% elif message.tags == 'success' %}
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    {% elif message.tags == 'warning' %}
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                    {% else %}
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    {% endif %}
-                </svg>
-                <span>{{ message }}</span>
-            </div>
-        {% endfor %}
+<div id="toast-container" class="fixed top-20 right-4 z-[9999] space-y-2 max-w-md w-full px-4">
+    {% for message in messages %}
+    <div role="alert"
+         class="alert {% if message.tags == 'error' %}alert-error{% elif message.tags == 'success' %}alert-success{% elif message.tags == 'warning' %}alert-warning{% else %}alert-info{% endif %} shadow-2xl toast-message opacity-0 translate-x-full transition-all duration-300 ease-out"
+         data-toast-id="toast-{{ forloop.counter }}">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-current shrink-0 w-6 h-6">
+            {% if message.tags == 'error' %}
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            {% elif message.tags == 'success' %}
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            {% elif message.tags == 'warning' %}
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            {% else %}
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            {% endif %}
+        </svg>
+        <span>{{ message }}</span>
+        <button type="button"
+                class="btn btn-ghost btn-xs btn-circle ml-auto"
+                onclick="dismissToast(this.closest('.toast-message'))"
+                aria-label="Close">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+        </button>
     </div>
+    {% endfor %}
+</div>
+
+<script>
+    // Toast management functions
+    function dismissToast(toastElement) {
+        if (!toastElement) return;
+
+        // Add exit animation
+        toastElement.classList.add('opacity-0', 'translate-x-full');
+
+        // Remove from DOM after animation
+        setTimeout(() => {
+            toastElement.remove();
+
+            // Remove container if no toasts left
+            const container = document.getElementById('toast-container');
+            if (container && container.querySelectorAll('.toast-message').length === 0) {
+                container.remove();
+            }
+        }, 300);
+    }
+
+    function initToasts() {
+        const toasts = document.querySelectorAll('.toast-message');
+
+        toasts.forEach((toast, index) => {
+            // Slide in animation with stagger
+            setTimeout(() => {
+                toast.classList.remove('opacity-0', 'translate-x-full');
+                toast.classList.add('opacity-100', 'translate-x-0');
+            }, index * 100);
+
+            // Auto-dismiss after 5 seconds (longer for errors)
+            const isError = toast.classList.contains('alert-error');
+            const dismissDelay = isError ? 7000 : 5000;
+
+            setTimeout(() => {
+                dismissToast(toast);
+            }, dismissDelay + (index * 100));
+        });
+    }
+
+    // Initialize toasts on page load
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initToasts);
+    } else {
+        initToasts();
+    }
+
+    // Re-initialize toasts after HTMX swaps
+    document.body.addEventListener('htmx:afterSwap', function(e) {
+        // Small delay to ensure DOM is updated
+        setTimeout(initToasts, 50);
+    });
+</script>
 {% endif %}

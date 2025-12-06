@@ -20,23 +20,15 @@ from teachers.models import Teacher
 
 class GradingPeriod(models.Model):
     """
-    Represents an academic term/semester for grading purposes.
-    Typically 3 terms per academic year in Ghana.
+    Represents grading configuration for a term/semester.
+    Links to the Term model for term/semester information.
     """
 
-    class Term(models.TextChoices):
-        TERM_1 = 'term_1', 'First Term'
-        TERM_2 = 'term_2', 'Second Term'
-        TERM_3 = 'term_3', 'Third Term'
-
-    academic_year = models.CharField(
-        max_length=20,
-        help_text='Academic year (e.g., 2024/2025)'
-    )
-    term = models.CharField(
-        max_length=10,
-        choices=Term.choices,
-        default=Term.TERM_1
+    term = models.OneToOneField(
+        'core.Term',
+        on_delete=models.CASCADE,
+        related_name='grading_period',
+        help_text='Term/Semester this grading period is for'
     )
     start_date = models.DateField()
     end_date = models.DateField()
@@ -59,15 +51,14 @@ class GradingPeriod(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        ordering = ['-academic_year', '-term']
-        unique_together = [['academic_year', 'term']]
+        ordering = ['-term__academic_year__start_date', '-term__number']
         indexes = [
-            models.Index(fields=['academic_year', 'term']),
+            models.Index(fields=['term']),
             models.Index(fields=['is_current']),
         ]
 
     def __str__(self):
-        return f"{self.get_term_display()} - {self.academic_year}"
+        return f"{self.term}"
 
     def save(self, *args, **kwargs):
         # Ensure only one grading period is current

@@ -23,7 +23,7 @@ from weasyprint import HTML
 
 @school_admin_required
 def teacher_list(request: HttpRequest) -> HttpResponse:
-    """List all teachers with HTMX support and pagination"""
+    """List all teachers with HTMX support"""
     teachers = Teacher.objects.select_related('user').all()
 
     # Status filter
@@ -32,9 +32,6 @@ def teacher_list(request: HttpRequest) -> HttpResponse:
         teachers = teachers.filter(is_active=True)
     elif status == 'inactive':
         teachers = teachers.filter(is_active=False)
-    else:
-        # Default to showing only active teachers if no filter specified
-        teachers = teachers.filter(is_active=True)
 
     # Gender filter
     gender = request.GET.get('gender', '')
@@ -50,32 +47,18 @@ def teacher_list(request: HttpRequest) -> HttpResponse:
             Q(employee_id__icontains=search)
         )
 
-    # Pagination - 20 teachers per page (modern load more approach)
-    page_number = request.GET.get('page', 1)
-    paginator = Paginator(teachers, 20)  # 20 items per page
-    page_obj = paginator.get_page(page_number)
-
-    # Count teachers with accounts on current page
-    teachers_with_accounts = sum(1 for teacher in page_obj if teacher.user is not None)
-
     context = {
-        'teachers': page_obj,
-        'page_obj': page_obj,
-        'teachers_with_accounts': teachers_with_accounts,
+        'teachers': teachers,
         'search': search,
         'status': status,
         'gender': gender,
     }
 
-    # If HTMX request for "load more", return only the new rows + load more button
-    if request.headers.get('HX-Request') and request.GET.get('page'):
-        return render(request, 'teachers/partials/teacher_rows_paginated.html', context)
+    # Return partial template for HTMX requests
+    if request.headers.get('HX-Request'):
+        return render(request, 'teachers/partials/teacher_list_content.html', context)
 
-    # If HTMX request for search/filters, return table with pagination reset
-    if request.headers.get('HX-Request') and request.headers.get('HX-Target') == 'teachers-table':
-        return render(request, 'teachers/partials/teacher_rows.html', context)
-
-    # Full page render (works for both initial load and HTMX navigation)
+    # Full page render
     return render(request, 'teachers/teacher_list.html', context)
 
 
@@ -94,57 +77,25 @@ def teacher_create(request: HttpRequest) -> HttpResponse:
                 if generated_password:
                     success_message += f' Credentials sent to {teacher.email}'
 
-                # For HTMX requests, return success with OOB swap to refresh list
-                if request.headers.get('HX-Request'):
-                    # Get updated teacher list with pagination (reset to page 1)
-                    teachers = Teacher.objects.select_related('user').filter(is_active=True)
-                    paginator = Paginator(teachers, 20)
-                    page_obj = paginator.get_page(1)
-
-                    # Count teachers with accounts on current page
-                    teachers_with_accounts = sum(1 for teacher in page_obj if teacher.user is not None)
-
-                    context = {
-                        'teachers': page_obj,
-                        'page_obj': page_obj,
-                        'teachers_with_accounts': teachers_with_accounts,
-                        'search': '',
-                        'status': 'active',
-                        'gender': '',
-                    }
-
-                    # Render the response with OOB swap for the table and statistics
-                    table_html = render_to_string('teachers/partials/teacher_rows.html', context, request=request)
-                    stats_html = render_to_string('teachers/partials/teacher_statistics.html', context, request=request)
-                    response_html = f'''
-                    <div id="teacher-form-container" class="hidden" hx-swap-oob="outerHTML"></div>
-                    <div id="teachers-table" hx-swap-oob="innerHTML">{table_html}</div>
-                    {stats_html}
-                    '''
-                    response = HttpResponse(response_html)
-                    # Use After-Settle to ensure DOM operations complete before event fires
-                    response['HX-Trigger-After-Settle'] = 'teacherCreated'
-                    return response
-
                 messages.success(request, success_message)
                 return redirect('teachers:list')
             except Exception as e:
                 messages.error(request, f'Error creating teacher: {str(e)}')
-        # If form is invalid and HTMX, return the form with errors
-        elif request.headers.get('HX-Request'):
-            return render(request, 'teachers/partials/teacher_form_inline.html', {'form': form, 'action': 'create'})
     else:
         # GET request - show empty form
         form = TeacherCreateForm()
 
-    # For HTMX requests, return only the inline form
-    if request.headers.get('HX-Request'):
-        response = render(request, 'teachers/partials/teacher_form_inline.html', {'form': form, 'action': 'create'})
-        response['HX-Trigger'] = 'formLoaded'
-        return response
+    context = {
+        'form': form,
+        'action': 'Add'
+    }
 
-    # Full page render (fallback)
-    return render(request, 'teachers/teacher_create.html', {'form': form})
+    # Return partial template for HTMX requests
+    if request.headers.get('HX-Request'):
+        return render(request, 'teachers/partials/teacher_form_content.html', context)
+
+    # Full page render
+    return render(request, 'teachers/teacher_create.html', context)
 
 
 @school_admin_required
@@ -175,68 +126,26 @@ def teacher_edit(request: HttpRequest, pk: int) -> HttpResponse:
                 # Save changes
                 teacher, _ = form.save(request=request)
 
-                # For HTMX requests, return success with OOB swap to refresh list
-                if request.headers.get('HX-Request'):
-                    # Get updated teacher list with pagination (reset to page 1)
-                    teachers = Teacher.objects.select_related('user').filter(is_active=True)
-                    paginator = Paginator(teachers, 20)
-                    page_obj = paginator.get_page(1)
-
-                    # Count teachers with accounts on current page
-                    teachers_with_accounts = sum(1 for teacher in page_obj if teacher.user is not None)
-
-                    context = {
-                        'teachers': page_obj,
-                        'page_obj': page_obj,
-                        'teachers_with_accounts': teachers_with_accounts,
-                        'search': '',
-                        'status': 'active',
-                        'gender': '',
-                    }
-
-                    # Render the response with OOB swap for the table and statistics
-                    table_html = render_to_string('teachers/partials/teacher_rows.html', context, request=request)
-                    stats_html = render_to_string('teachers/partials/teacher_statistics.html', context, request=request)
-                    response_html = f'''
-                    <div id="teacher-form-container" class="hidden" hx-swap-oob="outerHTML"></div>
-                    <div id="teachers-table" hx-swap-oob="innerHTML">{table_html}</div>
-                    {stats_html}
-                    '''
-                    response = HttpResponse(response_html)
-                    # Use After-Settle to ensure DOM operations complete before event fires
-                    response['HX-Trigger-After-Settle'] = 'teacherUpdated'
-                    return response
-
                 messages.success(request, f'Teacher {teacher.get_full_name()} updated successfully!')
                 return redirect('teachers:list')
             except Exception as e:
                 messages.error(request, f'Error updating teacher: {str(e)}')
-        # If form is invalid and HTMX, return the form with errors
-        elif request.headers.get('HX-Request'):
-            return render(request, 'teachers/partials/teacher_form_inline.html', {
-                'form': form,
-                'action': 'edit',
-                'teacher': teacher
-            })
     else:
         # GET request - show form with teacher data
         form = TeacherCreateForm(instance=teacher)
 
-    # For HTMX requests, return only the inline form
-    if request.headers.get('HX-Request'):
-        response = render(request, 'teachers/partials/teacher_form_inline.html', {
-            'form': form,
-            'action': 'edit',
-            'teacher': teacher
-        })
-        response['HX-Trigger'] = 'formLoaded'
-        return response
-
-    # Full page render (fallback)
-    return render(request, 'teachers/teacher_create.html', {
+    context = {
         'form': form,
+        'action': 'Edit',
         'teacher': teacher
-    })
+    }
+
+    # Return partial template for HTMX requests
+    if request.headers.get('HX-Request'):
+        return render(request, 'teachers/partials/teacher_form_content.html', context)
+
+    # Full page render
+    return render(request, 'teachers/teacher_create.html', context)
 
 
 @school_admin_required
@@ -318,6 +227,9 @@ def teacher_bulk_import(request: HttpRequest) -> HttpResponse:
                 if request.headers.get('HX-Request'):
                     response = render(request, 'teachers/partials/bulk_import_preview_inline.html', context)
                     response['HX-Trigger'] = 'formLoaded'
+                    response['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+                    response['Pragma'] = 'no-cache'
+                    response['Expires'] = '0'
                     return response
 
                 return render(request, 'teachers/bulk_import_preview.html', context)
@@ -326,7 +238,11 @@ def teacher_bulk_import(request: HttpRequest) -> HttpResponse:
                 messages.error(request, f'Error parsing file: {str(e)}')
                 # For HTMX requests, return form with error
                 if request.headers.get('HX-Request'):
-                    return render(request, 'teachers/partials/bulk_import_inline.html', {'form': form})
+                    response = render(request, 'teachers/partials/bulk_import_inline.html', {'form': form})
+                    response['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+                    response['Pragma'] = 'no-cache'
+                    response['Expires'] = '0'
+                    return response
     else:
         form = TeacherBulkImportForm()
 
@@ -334,6 +250,9 @@ def teacher_bulk_import(request: HttpRequest) -> HttpResponse:
     if request.headers.get('HX-Request'):
         response = render(request, 'teachers/partials/bulk_import_inline.html', {'form': form})
         response['HX-Trigger'] = 'formLoaded'
+        response['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+        response['Pragma'] = 'no-cache'
+        response['Expires'] = '0'
         return response
 
     return render(request, 'teachers/bulk_import.html', {'form': form})

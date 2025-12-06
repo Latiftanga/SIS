@@ -3,7 +3,20 @@
 {% block title %}Bulk Import Teachers{% endblock %}
 
 {% block content %}
-<div class="max-w-4xl mx-auto">
+<div>
+    <!-- Breadcrumb -->
+    <div class="text-sm breadcrumbs mb-4">
+        <ul>
+            <li>
+                <a href="{% url 'teachers:list' %}"
+                   hx-get="{% url 'teachers:list' %}"
+                   hx-target="#main-content"
+                   hx-push-url="true">Teachers</a>
+            </li>
+            <li>Bulk Import</li>
+        </ul>
+    </div>
+
     <!-- Header -->
     <div class="mb-6">
         <div class="flex items-center justify-between">
@@ -11,12 +24,6 @@
                 <h1 class="text-2xl font-bold">Bulk Import Teachers</h1>
                 <p class="text-base-content/60 text-sm mt-1">Upload Excel or CSV file to import multiple teachers at once</p>
             </div>
-            <a href="{% url 'teachers:list' %}" class="btn btn-ghost btn-sm">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                </svg>
-                Cancel
-            </a>
         </div>
     </div>
 
@@ -115,7 +122,13 @@
 
                 <!-- Action Buttons -->
                 <div class="card-actions justify-end">
-                    <a href="{% url 'teachers:list' %}" class="btn btn-ghost btn-sm">Cancel</a>
+                    <a href="{% url 'teachers:list' %}"
+                       hx-get="{% url 'teachers:list' %}"
+                       hx-target="#main-content"
+                       hx-push-url="true"
+                       class="btn btn-ghost btn-sm">
+                        Cancel
+                    </a>
                     <button type="submit" class="btn btn-primary btn-sm">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />

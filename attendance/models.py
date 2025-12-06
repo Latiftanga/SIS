@@ -20,6 +20,14 @@ class AttendanceSession(models.Model):
         on_delete=models.CASCADE,
         related_name='attendance_sessions'
     )
+    academic_year = models.ForeignKey(
+        'core.AcademicYear',
+        on_delete=models.PROTECT,
+        related_name='attendance_sessions',
+        null=True,
+        blank=True,
+        help_text='Academic year for this attendance session'
+    )
     date = models.DateField(default=timezone.now)
     session_type = models.CharField(
         max_length=20,
@@ -58,6 +66,7 @@ class AttendanceSession(models.Model):
         indexes = [
             models.Index(fields=['class_obj', 'date']),
             models.Index(fields=['date', 'session_type']),
+            models.Index(fields=['academic_year', 'date']),
         ]
 
     def __str__(self):

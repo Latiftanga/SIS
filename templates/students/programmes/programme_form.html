@@ -3,20 +3,33 @@
 {% block title %}{{ action }} Programme{% endblock %}
 
 {% block content %}
-<div class="max-w-2xl mx-auto">
+<div class="p-6">
+    <!-- Breadcrumb -->
+    <div class="text-sm breadcrumbs mb-4">
+        <ul>
+            <li>
+                <a href="{% url 'students:programme_list' %}"
+                   hx-get="{% url 'students:programme_list' %}"
+                   hx-target="#main-content"
+                   hx-push-url="true">Programmes</a>
+            </li>
+            <li>{{ action }}</li>
+        </ul>
+    </div>
+
+    <!-- Header -->
     <div class="mb-6">
-        <div class="flex items-center justify-between">
-            <div>
-                <h1 class="text-2xl font-bold">{{ action }} Programme</h1>
-                <p class="text-base-content/60 text-sm mt-1">Academic programmes for SHS classes</p>
-            </div>
-            <a href="{% url 'students:programme_list' %}" class="btn btn-ghost btn-sm">Cancel</a>
-        </div>
+        <h1 class="text-3xl font-bold">{{ action }} Programme</h1>
+        <p class="text-base-content/60 mt-1">Academic programmes for SHS classes</p>
     </div>
 
     <div class="card bg-base-100 shadow-xl">
         <div class="card-body">
-            <form method="post" class="space-y-4">
+            <form method="post"
+                  hx-post="{% if programme %}{% url 'students:programme_edit' programme.id %}{% else %}{% url 'students:programme_create' %}{% endif %}"
+                  hx-target="#main-content"
+                  hx-swap="innerHTML"
+                  class="space-y-4">
                 {% csrf_token %}
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -45,7 +58,11 @@
                 </div>
 
                 <div class="card-actions justify-end pt-4">
-                    <a href="{% url 'students:programme_list' %}" class="btn btn-ghost">Cancel</a>
+                    <a href="{% url 'students:programme_list' %}"
+                       hx-get="{% url 'students:programme_list' %}"
+                       hx-target="#main-content"
+                       hx-push-url="true"
+                       class="btn btn-ghost">Cancel</a>
                     <button type="submit" class="btn btn-primary">{{ action }} Programme</button>
                 </div>
             </form>

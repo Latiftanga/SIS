@@ -47,6 +47,11 @@ def render_navbar(context: Dict[str, Any]) -> Dict[str, Any]:
         'user_full_name': user.get_full_name(),
         'user_type': user.get_user_type(),
         'is_admin': user.is_superuser or user.is_school_admin,
+        # Pass academic session info from context processor
+        'current_academic_year': context.get('current_academic_year', ''),
+        'current_term': context.get('current_term', ''),
+        'school_name': context.get('school_name', ''),
+        'school_logo': context.get('school_logo'),
     }
 
 

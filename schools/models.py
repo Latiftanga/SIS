@@ -77,12 +77,21 @@ class PlatformUser(AbstractBaseUser, PermissionsMixin):
 class School(TenantMixin):
     """School tenant - each school gets its own database schema"""
     name = models.CharField(max_length=255)
+    short_name = models.CharField(
+        max_length=50,
+        blank=True,
+        help_text="Short name to display throughout the app (e.g., 'GHS', 'Wesley College')"
+    )
     created_on = models.DateField(auto_now_add=True)
 
     auto_create_schema = True
 
     def __str__(self) -> str:
         return self.name
+
+    def get_display_name(self) -> str:
+        """Return short_name if available, otherwise fall back to name"""
+        return self.short_name if self.short_name else self.name
 
 
 class Domain(DomainMixin):

@@ -18,14 +18,14 @@ User = get_user_model()
 class StudentCreateForm(forms.ModelForm):
     """
     Form for creating a new student with optional user account.
-    
+
     Best Practices Implemented:
     - Optional user account creation via checkbox
     - Auto-generated secure passwords
     - Email notifications with credentials
     - Force password change on first login
     """
-    
+
     # Account Creation Option
     create_user_account = forms.BooleanField(
         required=False,
@@ -38,16 +38,29 @@ class StudentCreateForm(forms.ModelForm):
         help_text='Enable this to create a login account for the student'
     )
 
+    # Class Enrollment Option
+    class_enrollment = forms.ModelChoiceField(
+        required=False,
+        queryset=None,  # Will be set in __init__
+        widget=forms.Select(attrs={
+            'class': 'select select-bordered select-sm w-full'
+        }),
+        label='Assign to Class',
+        help_text='Optional: Assign student to a class'
+    )
+
     class Meta:
         model = Student
         fields = [
             'first_name', 'last_name', 'other_names', 'date_of_birth', 'gender',
             'email', 'phone_number', 'residential_address',
-            'student_id', 'admission_date', 'current_grade',
+            'student_id', 'admission_date',
             'guardian_name', 'guardian_relationship', 'guardian_phone',
             'guardian_email', 'guardian_address',
             'emergency_contact_name', 'emergency_contact_phone',
-            'medical_conditions', 'photo'
+            'medical_conditions',
+            'residence_status', 'dormitory', 'bed_number', 'house',
+            'photo'
         ]
         widgets = {
             # Personal Information
@@ -101,20 +114,16 @@ class StudentCreateForm(forms.ModelForm):
                 'type': 'date',
                 'required': True
             }),
-            'current_grade': forms.Select(attrs={
-                'class': 'select select-bordered select-sm w-full',
-                'required': True
-            }),
-            
+
             # Guardian Information
             'guardian_name': forms.TextInput(attrs={
                 'class': 'input input-bordered input-sm w-full',
                 'placeholder': 'Full name of parent/guardian',
                 'required': True
             }),
-            'guardian_relationship': forms.TextInput(attrs={
-                'class': 'input input-bordered input-sm w-full',
-                'placeholder': 'e.g., Parent, Guardian',
+            'guardian_relationship': forms.Select(attrs={
+                'class': 'select select-bordered select-sm w-full',
+                'required': True
             }),
             'guardian_phone': forms.TextInput(attrs={
                 'class': 'input input-bordered input-sm w-full',
@@ -147,13 +156,57 @@ class StudentCreateForm(forms.ModelForm):
                 'rows': 2,
                 'placeholder': 'Any medical conditions, allergies, or special needs (optional)'
             }),
-            
+
+            # Boarding/Residence Information (for SHS students)
+            'residence_status': forms.Select(attrs={
+                'class': 'select select-bordered select-sm w-full'
+            }),
+            'dormitory': forms.TextInput(attrs={
+                'class': 'input input-bordered input-sm w-full',
+                'placeholder': 'Dormitory/Hostel name (for boarding students)'
+            }),
+            'bed_number': forms.TextInput(attrs={
+                'class': 'input input-bordered input-sm w-full',
+                'placeholder': 'Bed/Cubicle number (for boarding students)'
+            }),
+            'house': forms.Select(attrs={
+                'class': 'select select-bordered select-sm w-full'
+            }),
+
             # Photo
             'photo': forms.FileInput(attrs={
                 'class': 'file-input file-input-bordered file-input-sm w-full',
                 'accept': 'image/*'
             }),
         }
+
+    def __init__(self, *args, **kwargs):
+        """Initialize form and set class queryset."""
+        super().__init__(*args, **kwargs)
+
+        # Import here to avoid circular imports
+        from classes.models import Class, StudentEnrollment, House
+
+        # Set class queryset to active classes
+        self.fields['class_enrollment'].queryset = Class.objects.filter(is_active=True).order_by('grade_level', 'section')
+
+        # Set house queryset to active houses
+        self.fields['house'].queryset = House.objects.filter(is_active=True)
+        self.fields['house'].required = False
+
+        # If editing existing student, pre-select their current class
+        if self.instance.pk:
+            try:
+                # Get the most recent active enrollment
+                current_enrollment = StudentEnrollment.objects.filter(
+                    student=self.instance,
+                    is_active=True
+                ).order_by('-created_at').first()
+
+                if current_enrollment:
+                    self.fields['class_enrollment'].initial = current_enrollment.class_obj
+            except StudentEnrollment.DoesNotExist:
+                pass
 
     def clean_email(self) -> str:
         """Validate email uniqueness if provided and creating user account."""
@@ -258,7 +311,7 @@ Hello,
 Student {student.get_full_name()} has been enrolled at {school_name}.
 
 Student ID: {student.student_id}
-Grade: {student.current_grade}
+Grade: {student.get_current_grade()}
 
 Best regards,
 {school_name}
@@ -277,24 +330,68 @@ Best regards,
         student = super().save(commit=False)
         user = None
         password = None
-        
-        # Create user account if checkbox is checked and email is provided
-        if self.cleaned_data.get('create_user_account') and student.email:
+
+        # Create user account if checkbox is checked, student doesn't already have one, and email is provided
+        if self.cleaned_data.get('create_user_account') and not student.user and student.email:
             user, password = self._create_user_account(student.email)
             student.user = user
-        
+
         if commit:
             student.save()
-            # Send welcome email
-            self._send_welcome_email(student, password, request)
-        
+            # Send welcome email only if password was generated (new account or new user)
+            if password:
+                self._send_welcome_email(student, password, request)
+
+            # Handle class enrollment
+            self._handle_class_enrollment(student)
+
         return student, password
+
+    def _handle_class_enrollment(self, student: Student) -> None:
+        """Handle class enrollment create/update/delete."""
+        from classes.models import Class, StudentEnrollment
+        from datetime import date
+
+        # Get selected class
+        selected_class = self.cleaned_data.get('class_enrollment')
+
+        # Get existing active enrollment
+        existing_enrollment = StudentEnrollment.objects.filter(
+            student=student,
+            is_active=True
+        ).order_by('-created_at').first()
+
+        if selected_class:
+            # Determine academic year from selected class or use default
+            academic_year = selected_class.academic_year if hasattr(selected_class, 'academic_year') and selected_class.academic_year else '2024/2025'
+
+            # Create or update enrollment
+            if existing_enrollment:
+                # Update existing enrollment if class changed
+                if existing_enrollment.class_obj != selected_class:
+                    existing_enrollment.class_obj = selected_class
+                    existing_enrollment.academic_year = academic_year
+                    existing_enrollment.save()
+            else:
+                # Create new enrollment
+                StudentEnrollment.objects.create(
+                    student=student,
+                    class_obj=selected_class,
+                    academic_year=academic_year,
+                    enrollment_date=student.admission_date or date.today(),
+                    status='enrolled',
+                    is_active=True
+                )
+        else:
+            # No class selected - remove enrollment if exists
+            if existing_enrollment:
+                existing_enrollment.delete()
 
 
 class StudentBulkImportForm(forms.Form):
     """
     Form for bulk importing students from Excel or CSV files.
-    
+
     Expected columns:
     - first_name (required)
     - last_name (required)
@@ -302,14 +399,14 @@ class StudentBulkImportForm(forms.Form):
     - gender (required: Male or Female)
     - student_id (required)
     - admission_date (required: YYYY-MM-DD)
-    - current_grade (required)
+    - class_name (required: e.g., "Basic 1 A", "JHS 2 B" - must match existing class)
     - guardian_name (required)
     - guardian_phone (required)
     - other_names (optional)
     - email (optional)
     - phone_number (optional)
     - residential_address (optional)
-    - guardian_relationship (optional)
+    - guardian_relationship (optional: Parent, Father, Mother, Guardian, etc.)
     - guardian_email (optional)
     - guardian_address (optional)
     - emergency_contact_name (optional)
@@ -416,7 +513,7 @@ class StudentBulkImportForm(forms.Form):
             'student_id': str(row.get('student_id', '')).strip(),
             'admission_date': row.get('admission_date'),
             'date_of_birth': row.get('date_of_birth'),
-            'current_grade': str(row.get('current_grade', '')).strip(),
+            'class_name': str(row.get('class_name', '')).strip(),
             'guardian_name': str(row.get('guardian_name', '')).strip(),
             'guardian_relationship': str(row.get('guardian_relationship', 'Parent')).strip(),
             'guardian_phone': str(row.get('guardian_phone', '')).strip(),
@@ -429,10 +526,10 @@ class StudentBulkImportForm(forms.Form):
             'errors': [],
             'valid': True
         }
-        
+
         # Validate required fields
-        required_fields = ['first_name', 'last_name', 'date_of_birth', 'gender', 
-                          'student_id', 'admission_date', 'current_grade',
+        required_fields = ['first_name', 'last_name', 'date_of_birth', 'gender',
+                          'student_id', 'admission_date', 'class_name',
                           'guardian_name', 'guardian_phone']
         for field in required_fields:
             if not data[field]:
@@ -456,11 +553,18 @@ class StudentBulkImportForm(forms.Form):
             if Student.objects.filter(student_id=data['student_id']).exists():
                 data['errors'].append(f'Student ID {data["student_id"]} already exists')
                 data['valid'] = False
-        
+
+        # Validate class_name (required - must exist and be active)
+        if data['class_name']:
+            from classes.models import Class
+            if not Class.objects.filter(name=data['class_name'], is_active=True).exists():
+                data['errors'].append(f'Class "{data["class_name"]}" not found or inactive')
+                data['valid'] = False
+
         # Parse create_account field
         create_account_value = str(data['create_account']).strip().lower()
         data['create_account'] = create_account_value in ['yes', 'true', '1', 'y']
-        
+
         return data
 
     def _parse_date(self, date_value: Any, field_name: str, data: Dict) -> Optional[str]:
